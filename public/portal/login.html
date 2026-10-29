@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Sunrise Public School</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+  
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-brand">
+      <i class="fas fa-graduation-cap"></i>
+      <h1>Sunrise Public School</h1>
+      <p>K-12 School Management Portal<br>Empowering education through technology.</p>
+    </div>
+    <div class="login-form-wrap">
+      <h2>Welcome Back</h2>
+      <p>Sign in to your account</p>
+      
+      <div class="alert-error" id="loginError">
+        <i class="fas fa-exclamation-circle"></i><span id="loginErrorMsg"></span>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" class="form-control" id="email" required placeholder="name@sunriseschool.edu.in">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-icon-wrap">
+            <input type="password" class="form-control" id="password" required placeholder="Enter password">
+            <i class="fas fa-eye csp-action-target" id="pwIcon" data-csp-action-click="togglePassword" data-csp-args-click="%5B%5D" role="button" tabindex="0"></i>
+          </div>
+        </div>
+        <div class="csp-style-4df5888cbc">
+          <label class="csp-style-708fc57bab"><input type="checkbox"> Remember me</label>
+          <a href="#" class="csp-style-f1acda8972" data-csp-action-click="showAlert" data-csp-args-click="%5B%22Please%20contact%20your%20administrator%20to%20reset%20your%20password.%22%5D">Forgot password?</a>
+        </div>
+        
+        <button type="submit" class="btn-login" id="btnLogin">Sign In <i class="fas fa-arrow-right"></i></button>
+      </form>
+      
+      <div class="demo-section">
+        <h3><i class="fas fa-vial"></i> Demo Accounts</h3>
+        <div class="demo-pills">
+          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22admin%40sunriseschool.edu.in%22%2C%22Admin%401234%22%5D">Super Admin</button>
+          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22principal%40sunriseschool.edu.in%22%2C%22Principal%401234%22%5D">Principal</button>
+          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22teacher%40sunriseschool.edu.in%22%2C%22Teacher%401234%22%5D">Teacher</button>
+          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22student%40sunriseschool.edu.in%22%2C%22Student%401234%22%5D">Student</button>
+          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22parent%40sunriseschool.edu.in%22%2C%22Parent%401234%22%5D">Parent</button>
+          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22accountant%40sunriseschool.edu.in%22%2C%22Accountant%401234%22%5D">Finance</button>
+          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22librarian%40sunriseschool.edu.in%22%2C%22Librarian%401234%22%5D">Library</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/csp-actions.js"></script>
+  <script src="/js/login.js"></script>
+</body>
+</html>

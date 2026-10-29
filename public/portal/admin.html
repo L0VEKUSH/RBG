@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal — Sunrise Public School</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+</head>
+<body data-role="admin">
+  <div class="sidebar-overlay csp-action-target" id="sidebarOverlay" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D" role="button" tabindex="0"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="fas fa-shield-alt"></i>
+      <div><h2>Sunrise Public School</h2><small>System Admin</small></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAvatar">A</div>
+      <div class="sidebar-user-info">
+        <h4 id="sidebarName">Administrator</h4>
+        <span class="role-badge" id="sidebarRole">Super Admin</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" data-csp-action-click="logout" data-csp-args-click="%5B%5D"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+
+  <header class="topbar" id="topbar">
+    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <span class="topbar-breadcrumb" id="breadcrumb">System Dashboard</span>
+    <div class="topbar-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="globalSearch" placeholder="Search users, settings..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
+        <div class="topbar-user-avatar" id="topbarAvatar">A</div>
+        <span class="topbar-user-name" id="topbarName">Admin</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-inner">
+      <div class="toast-container" id="toastContainer"></div>
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page-section active" id="panel-dashboard">
+        <div class="welcome-banner csp-style-ad70d23e97" >
+          <div>
+            <h1 id="dashGreeting">Good Morning! 👋</h1>
+            <p id="dashDate"></p>
+          </div>
+          <div class="welcome-avatar-lg csp-style-1e8b36a3fc" id="welcomeAvatar" >A</div>
+        </div>
+
+        <div class="stats-grid" id="adminStats">
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+        </div>
+        
+        <div class="charts-row">
+          <div class="card csp-style-c0aa232c11" >
+            <div class="card-header"><h3><i class="fas fa-server"></i> System Health</h3></div>
+            <div class="card-body">
+              <div class="form-grid csp-style-9430410d62" >
+                <div class="csp-style-228d9722b7">
+                  <div class="csp-style-6de48e5ff0"><i class="fas fa-check-circle"></i></div>
+                  <div class="csp-style-c6fa01b3f1">API Status</div><div class="csp-style-ba9ffcda2d">Online</div>
+                </div>
+                <div class="csp-style-228d9722b7">
+                  <div class="csp-style-6de48e5ff0"><i class="fas fa-database"></i></div>
+                  <div class="csp-style-c6fa01b3f1">Database</div><div class="csp-style-ba9ffcda2d">Connected</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3><i class="fas fa-shield-alt"></i> Recent Security Logs</h3><button class="btn btn-ghost btn-sm" data-csp-action-click="showPanel" data-csp-args-click="%5B%22audit%22%5D">View All</button></div>
+            <div class="card-body" id="dashAudit"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── USER MANAGEMENT ── -->
+      <div class="page-section" id="panel-users">
+        <div class="section-header">
+          <h2><i class="fas fa-users-cog"></i> User Management</h2>
+          <button class="btn btn-primary" data-csp-action-click="openModal" data-csp-args-click="%5B%22addUserModal%22%5D"><i class="fas fa-plus"></i> Add User</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" class="filter-input" id="userSearch" placeholder="Search by name, email, or role..." data-csp-action-input="filterUsers" data-csp-args-input="%5B%5D">
+          <select class="filter-select" id="userRoleFilter" data-csp-action-change="filterUsers" data-csp-args-change="%5B%5D">
+            <option value="">All Roles</option>
+            <option value="super_admin">Super Admin</option>
+            <option value="principal">Principal</option>
+            <option value="teacher">Teacher</option>
+            <option value="student">Student</option>
+            <option value="parent">Parent</option>
+            <option value="accountant">Accountant</option>
+            <option value="librarian">Librarian</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="usersTableBody"><tr><td colspan="5"><div class="spinner"></div></td></tr></tbody>
+            </table>
+          </div>
+          <div class="csp-style-9364119a4e" id="usersPagination"></div>
+        </div>
+      </div>
+
+      <!-- ── AUDIT LOGS ── -->
+      <div class="page-section" id="panel-audit">
+        <div class="section-header">
+          <h2><i class="fas fa-history"></i> System Audit Logs</h2>
+        </div>
+        <div class="filter-bar">
+          <select class="filter-select" id="auditActionFilter" data-csp-action-change="loadAuditLogs" data-csp-args-change="%5B%5D"><option value="">All Actions</option><option value="LOGIN">Login</option><option value="UPDATE">Update</option><option value="DELETE">Delete</option></select>
+          <input type="date" class="filter-input" id="auditDateFilter" data-csp-action-change="loadAuditLogs" data-csp-args-change="%5B%5D">
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Timestamp</th><th>User ID</th><th>Action</th><th>Resource</th><th>IP Address</th></tr></thead>
+              <tbody id="auditTableBody"><tr><td colspan="5"><div class="spinner"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS ── -->
+      <div class="page-section" id="panel-settings">
+        <div class="section-header">
+          <h2><i class="fas fa-cogs"></i> School Settings</h2>
+          <button class="btn btn-primary" data-csp-action-click="saveSettings" data-csp-args-click="%5B%5D"><i class="fas fa-save"></i> Save Settings</button>
+        </div>
+        
+        <div class="form-grid csp-style-191a62ef62" >
+          <div class="card">
+            <div class="card-header"><h3>General Information</h3></div>
+            <div class="card-body">
+              <div class="form-group"><label>School Name</label><input type="text" class="form-control" id="setSchoolName" value="Sunrise Public School"></div>
+              <div class="form-group"><label>Contact Email</label><input type="email" class="form-control" id="setContactEmail" value="contact@sunriseschool.edu.in"></div>
+              <div class="form-group"><label>Address</label><textarea class="form-control" id="setAddress" rows="3"></textarea></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Academic Parameters</h3></div>
+            <div class="card-body">
+              <div class="form-group"><label>Current Academic Year</label><select class="form-control" id="setAcadYear"><option>2023-2024</option><option selected>2024-2025</option></select></div>
+              <div class="form-group"><label>Timezone</label><input type="text" class="form-control" id="setTimezone" value="Asia/Kolkata"></div>
+              <div class="csp-style-5a74ede350">
+                <label class="csp-style-2c4907b32a"><input type="checkbox" checked> Enable Parent Portal Access</label>
+                <label class="csp-style-846a60ae35"><input type="checkbox" checked> Maintenance Mode</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-section" id="panel-profile"><div class="section-header"><h2>My Profile</h2></div><div class="card" id="profileCard"></div></div>
+      
+    </div>
+  </main>
+
+  <script src="/js/csp-actions.js"></script>
+    <script src="/vendor/chart.js/dist/chart.umd.min.js"></script>
+  <script src="/js/portal-core.js"></script>
+  <script src="/js/admin-portal.js"></script>
+</body>
+</html>

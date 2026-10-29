@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library Portal — Sunrise Public School</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+</head>
+<body data-role="library">
+  <div class="sidebar-overlay csp-action-target" id="sidebarOverlay" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D" role="button" tabindex="0"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="fas fa-book-reader"></i>
+      <div><h2>Sunrise Public School</h2><small>Library Portal</small></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAvatar">L</div>
+      <div class="sidebar-user-info">
+        <h4 id="sidebarName">Librarian</h4>
+        <span class="role-badge" id="sidebarRole">Librarian</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" data-csp-action-click="logout" data-csp-args-click="%5B%5D"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+
+  <header class="topbar" id="topbar">
+    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <span class="topbar-breadcrumb" id="breadcrumb">Library Dashboard</span>
+    <div class="topbar-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="globalSearch" placeholder="Search books, ISBN..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notifications%22%5D" title="Alerts">
+        <i class="fas fa-bell"></i><span class="notif-dot csp-style-6aa34d7432" id="notifDot" ></span>
+      </button>
+      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
+        <div class="topbar-user-avatar" id="topbarAvatar">L</div>
+        <span class="topbar-user-name" id="topbarName">Librarian</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-inner">
+      <div class="toast-container" id="toastContainer"></div>
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page-section active" id="panel-dashboard">
+        <div class="welcome-banner csp-style-fb8e5bfcc5" >
+          <div>
+            <h1 id="dashGreeting">Good Morning! 👋</h1>
+            <p id="dashDate"></p>
+          </div>
+          <div class="welcome-avatar-lg csp-style-bc3390a732" id="welcomeAvatar" >L</div>
+        </div>
+
+        <div class="stats-grid" id="libStats">
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+        </div>
+        
+        <div class="quick-actions csp-style-80dfcf9181" >
+          <button class="quick-action-btn csp-style-0d25c38de7" data-csp-action-click="showPanel" data-csp-args-click="%5B%22issue%22%5D"><i class="fas fa-book-open csp-style-bc3390a732" ></i><span>Issue Book</span></button>
+          <button class="quick-action-btn csp-style-5a50c5bc56" data-csp-action-click="showPanel" data-csp-args-click="%5B%22return%22%5D"><i class="fas fa-undo csp-style-4303eeffcd" ></i><span>Return Book</span></button>
+          <button class="quick-action-btn csp-style-2b0fca05ec" data-csp-action-click="openModal" data-csp-args-click="%5B%22addBookModal%22%5D"><i class="fas fa-plus-circle csp-style-c42b225626" ></i><span>Add New Book</span></button>
+        </div>
+
+        <div class="charts-row csp-style-80dfcf9181" >
+          <div class="card csp-style-287377f126" >
+            <div class="card-header"><h3><i class="fas fa-chart-pie"></i> Library Inventory</h3></div>
+            <div class="card-body csp-style-779e3b5ec0" ><canvas id="dashInventoryChart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Overdue Books</h3><button class="btn btn-ghost btn-sm">View All</button></div>
+            <div class="card-body" id="dashOverdue"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ISSUE BOOK ── -->
+      <div class="page-section" id="panel-issue">
+        <div class="section-header">
+          <h2><i class="fas fa-book-open csp-style-3fa58d5511" ></i> Issue Book</h2>
+        </div>
+        <div class="card csp-style-823ab81c89" >
+          <div class="card-body">
+            <div class="form-grid csp-style-85b48ea32b" >
+              <div class="csp-style-364d04928c">
+                <h4 class="csp-style-7b80e59e07">1. Select Member</h4>
+                <div class="form-grid csp-style-26f6376c0b" >
+                  <div class="form-group"><label>Role</label><select class="form-control" id="issueRole"><option value="student">Student</option><option value="teacher">Teacher</option></select></div>
+                  <div class="form-group"><label>Member ID (Adm No. or Emp ID)</label><input type="text" class="form-control" id="issueMemberId" placeholder="e.g. ADM101"></div>
+                </div>
+              </div>
+              <div class="csp-style-364d04928c">
+                <h4 class="csp-style-7b80e59e07">2. Select Book</h4>
+                <div class="form-group"><label>Book ID / ISBN</label><input type="text" class="form-control" id="issueBookId" placeholder="Scan or enter Book ID"></div>
+                <div class="form-group"><label>Expected Return Date</label><input type="date" class="form-control" id="issueDueDate"></div>
+              </div>
+              <button class="btn btn-primary btn-lg" id="btnIssueSubmit" data-csp-action-click="submitIssue" data-csp-args-click="%5B%5D"><i class="fas fa-check-circle"></i> Confirm Issue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RETURN BOOK ── -->
+      <div class="page-section" id="panel-return">
+        <div class="section-header">
+          <h2><i class="fas fa-undo csp-style-3fa58d5511" ></i> Return Book</h2>
+        </div>
+        <div class="card csp-style-823ab81c89" >
+          <div class="card-body">
+            <div class="form-grid csp-style-0b063c01b6" >
+              <div class="form-group csp-style-ab79ea2b85" ><label>Enter Book ID</label><input type="text" class="form-control" id="retBookId" placeholder="Scan or type ID"></div>
+              <button class="btn btn-primary" data-csp-action-click="lookupReturn" data-csp-args-click="%5B%5D"><i class="fas fa-search"></i> Find Record</button>
+            </div>
+            
+            <div id="returnDetails" class="csp-style-4063c23d86">
+              <div class="stats-grid csp-style-e7e3e005bf" >
+                <div class="stat-card"><div class="stat-content"><div class="stat-label">Book Title</div><div class="stat-value csp-style-bdfe08e900" id="retBookTitle" >Title</div></div></div>
+                <div class="stat-card"><div class="stat-content"><div class="stat-label">Issued To</div><div class="stat-value csp-style-bdfe08e900" id="retMemberName" >Name</div></div></div>
+              </div>
+              <div class="form-group">
+                <label>Book Condition</label>
+                <select class="form-control" id="retCondition"><option>Good</option><option>Damaged</option><option>Lost</option></select>
+              </div>
+              <button class="btn btn-success" id="btnProcessReturn" data-csp-action-click="processReturn" data-csp-args-click="%5B%5D"><i class="fas fa-check"></i> Process Return</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CATALOG ── -->
+      <div class="page-section" id="panel-catalog">
+        <div class="section-header">
+          <h2><i class="fas fa-list csp-style-3fa58d5511" ></i> Book Catalog</h2>
+          <button class="btn btn-primary" data-csp-action-click="openModal" data-csp-args-click="%5B%22addBookModal%22%5D"><i class="fas fa-plus"></i> Add Book</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" class="filter-input" id="catSearch" placeholder="Search title, author, ISBN..." data-csp-action-input="filterCatalog" data-csp-args-input="%5B%5D">
+          <select class="filter-select" id="catCategory" data-csp-action-change="filterCatalog" data-csp-args-change="%5B%5D"><option value="">All Categories</option><option>Fiction</option><option>Science</option><option>History</option><option>Mathematics</option></select>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Book ID / ISBN</th><th>Title</th><th>Author</th><th>Category</th><th>Copies</th><th>Action</th></tr></thead>
+              <tbody id="catalogTableBody"><tr><td colspan="6"><div class="spinner"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-section" id="panel-notices"><div class="section-header"><h2>Notices</h2></div><div id="noticesList"></div></div>
+      <div class="page-section" id="panel-profile"><div class="section-header"><h2>My Profile</h2></div><div class="card" id="profileCard"></div></div>
+    </div>
+  </main>
+
+  <!-- Add Book Modal -->
+  <div class="modal-overlay" id="addBookModal">
+    <div class="modal">
+      <div class="modal-header"><h3><i class="fas fa-plus-circle"></i> Add New Book</h3><button class="modal-close" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addBookModal%22%5D"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Title <span class="required">*</span></label><input class="form-control" id="newBkTitle"></div>
+        <div class="form-grid csp-style-9430410d62" >
+          <div class="form-group"><label>Author</label><input class="form-control" id="newBkAuthor"></div>
+          <div class="form-group"><label>ISBN</label><input class="form-control" id="newBkIsbn"></div>
+        </div>
+        <div class="form-grid csp-style-9430410d62" >
+          <div class="form-group"><label>Category</label><input class="form-control" id="newBkCat" placeholder="e.g. Science"></div>
+          <div class="form-group"><label>Total Copies <span class="required">*</span></label><input type="number" class="form-control" id="newBkQty" value="1"></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addBookModal%22%5D">Cancel</button><button class="btn btn-primary" data-csp-action-click="submitNewBook" data-csp-args-click="%5B%5D"><i class="fas fa-save"></i> Save Book</button></div>
+    </div>
+  </div>
+
+  <script src="/js/csp-actions.js"></script>
+    <script src="/vendor/chart.js/dist/chart.umd.min.js"></script>
+  <script src="/js/portal-core.js"></script>
+  <script src="/js/library-portal.js"></script>
+</body>
+</html>

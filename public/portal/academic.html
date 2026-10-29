@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Coordinator Portal — Sunrise Public School</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+    
+</head>
+<body>
+    <div class="sidebar" id="sidebar"></div>
+    <div class="topbar">
+        <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+        <div class="topbar-search"><i class="fas fa-search"></i><input type="text" placeholder="Search curriculum..."></div>
+        <div class="topbar-right">
+            <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D"><i class="fas fa-moon"></i></button>
+            <div class="profile-menu"><div class="profile-avatar" id="topbarAvatar">A</div></div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="main-inner">
+            <div id="page-dashboard" class="page-section active">
+                <div class="welcome-banner csp-style-a97aae348c" >
+                    <div class="welcome-avatar-lg"><i class="fas fa-book-reader"></i></div>
+                    <div>
+                        <h1 id="welcomeName">Welcome, Academic Coordinator</h1>
+                        <p>Manage curriculum, classes, and academic schedules.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-chalkboard"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statClasses">0</div>
+                            <div class="stat-label">Active Classes</div>
+                        </div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-icon"><i class="fas fa-pen-nib"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statOngoingExams">0</div>
+                            <div class="stat-label">Ongoing Exams</div>
+                        </div>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statUpcomingExams">0</div>
+                            <div class="stat-label">Upcoming Exams</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="card">
+                        <h3 class="card-title">Academic Tools</h3>
+                        <div class="quick-actions">
+                            <div class="quick-action-btn"><i class="fas fa-sitemap text-primary"></i><span>Class Setup</span></div>
+                            <div class="quick-action-btn"><i class="fas fa-book text-info"></i><span>Subjects</span></div>
+                            <div class="quick-action-btn"><i class="fas fa-calendar-week text-warning"></i><span>Timetable</span></div>
+                            <div class="quick-action-btn"><i class="fas fa-chart-line text-success"></i><span>Reports</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="page-profile" class="page-section">
+                <div class="section-header"><h2><i class="fas fa-user-circle"></i> My Profile</h2></div>
+                <div class="card csp-style-2905277e2d" >
+                    <div class="profile-big-avatar" id="profileBigAvatar">A</div>
+                    <h3 class="text-center csp-style-b1b46ed483" id="profileName" >Name</h3>
+                    <p class="text-center text-muted csp-style-b730b4e9f7" id="profileRole" >Academic Coordinator</p>
+                    <div class="text-center"><button class="btn btn-primary" data-csp-action-click="handleLogout" data-csp-args-click="%5B%5D">Logout</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/csp-actions.js"></script>
+    <script src="/js/portal-core.js"></script>
+    <script src="/js/secondary-portal.js"></script>
+</body></html>

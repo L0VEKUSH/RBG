@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fee Receipt</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; color: #333; }
+        .page { width: 210mm; min-height: 297mm; margin: 0 auto; background: white; padding: 20mm; box-sizing: border-box; }
+        header { text-align: center; border-bottom: 2px solid #2980b9; padding-bottom: 10px; margin-bottom: 20px; }
+        h1 { margin: 0; color: #2980b9; font-size: 24px; text-transform: uppercase; }
+        .school-info { font-size: 14px; margin-top: 5px; color: #555; }
+        .receipt-title { text-align: center; margin: 15px 0; font-size: 20px; font-weight: 600; text-decoration: underline; }
+        .receipt-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; }
+        .student-info { margin-bottom: 20px; font-size: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; font-size: 14px; }
+        th { background-color: #f4f6f7; }
+        .totals { width: 50%; float: right; }
+        .totals table { border: none; }
+        .totals th, .totals td { border: none; padding: 5px 10px; text-align: right; }
+        .totals th { text-align: left; }
+        .clearfix::after { content: ""; clear: both; display: table; }
+        .footer { margin-top: 60px; display: flex; justify-content: space-between; font-size: 14px; }
+        .signature { border-top: 1px solid #333; width: 150px; text-align: center; padding-top: 5px; }
+        @media print {
+            body { padding: 0; background: none; }
+            .page { margin: 0; width: 100%; min-height: 100%; padding: 0; }
+            .no-print { display: none; }
+        }
+        .btn-print { display: block; margin: 20px auto; padding: 10px 20px; background: #2980b9; color: #fff; border: none; cursor: pointer; text-align: center; width: 100px; border-radius: 5px;}
+    </style>
+</head>
+<body>
+    <button class="no-print btn-print" onclick="window.print()">Print</button>
+    <div class="page">
+        <header>
+            <h1>Sunrise Public School</h1>
+            <div class="school-info">123 Education Lane, Knowledge City, Country 45678</div>
+            <div class="school-info">Phone: +1 234 567 8900 | Email: finance@sunrisepublicschool.com</div>
+        </header>
+
+        <div class="receipt-title">FEE RECEIPT</div>
+
+        <div class="receipt-header">
+            <div><strong>Receipt No:</strong> <span id="receiptNo">Loading...</span></div>
+            <div><strong>Date:</strong> <span id="receiptDate">Loading...</span></div>
+        </div>
+
+        <div class="student-info">
+            <div><strong>Student Name:</strong> <span id="studentName">Loading...</span></div>
+            <div><strong>Admission No:</strong> <span id="admissionNo">Loading...</span></div>
+            <div><strong>Class:</strong> <span id="className">Loading...</span></div>
+            <div><strong>Payment Method:</strong> <span id="paymentMethod">Loading...</span></div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>S.No.</th>
+                    <th>Particulars</th>
+                    <th style="text-align: right;">Amount ($)</th>
+                </tr>
+            </thead>
+            <tbody id="particularsBody">
+                <!-- Injected via JS -->
+            </tbody>
+        </table>
+
+        <div class="clearfix">
+            <div class="totals">
+                <table>
+                    <tr>
+                        <th>Subtotal:</th>
+                        <td>$<span id="subtotal">0.00</span></td>
+                    </tr>
+                    <tr>
+                        <th>Discount:</th>
+                        <td>-$<span id="discount">0.00</span></td>
+                    </tr>
+                    <tr>
+                        <th>Total Paid:</th>
+                        <td style="font-weight: bold; border-top: 1px solid #ccc;">$<span id="totalPaid">0.00</span></td>
+                    </tr>
+                    <tr>
+                        <th>Balance Due:</th>
+                        <td>$<span id="balance">0.00</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div><strong>Amount in words:</strong> <span id="amountWords">Loading...</span></div>
+            <div class="signature">Cashier / Authorized Signatory</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const receiptId = params.get('id') || 'REC-9923';
+
+            setTimeout(() => {
+                const data = {
+                    receiptNo: receiptId,
+                    date: new Date().toLocaleDateString(),
+                    studentName: 'Alice Smith',
+                    admissionNo: 'ADM-2022-5678',
+                    className: 'VIII-B',
+                    paymentMethod: 'Credit Card',
+                    particulars: [
+                        { name: 'Tuition Fee (Term 1)', amount: 1200 },
+                        { name: 'Library Fee', amount: 150 },
+                        { name: 'Transport Fee', amount: 300 }
+                    ],
+                    subtotal: 1650,
+                    discount: 50,
+                    totalPaid: 1600,
+                    balance: 0,
+                    amountWords: 'One Thousand Six Hundred Dollars Only.'
+                };
+
+                document.getElementById('receiptNo').innerText = data.receiptNo;
+                document.getElementById('receiptDate').innerText = data.date;
+                document.getElementById('studentName').innerText = data.studentName;
+                document.getElementById('admissionNo').innerText = data.admissionNo;
+                document.getElementById('className').innerText = data.className;
+                document.getElementById('paymentMethod').innerText = data.paymentMethod;
+
+                const tbody = document.getElementById('particularsBody');
+                data.particulars.forEach((p, i) => {
+                    tbody.innerHTML += `<tr>
+                        <td>${i + 1}</td>
+                        <td>${p.name}</td>
+                        <td style="text-align: right;">${p.amount.toFixed(2)}</td>
+                    </tr>`;
+                });
+
+                document.getElementById('subtotal').innerText = data.subtotal.toFixed(2);
+                document.getElementById('discount').innerText = data.discount.toFixed(2);
+                document.getElementById('totalPaid').innerText = data.totalPaid.toFixed(2);
+                document.getElementById('balance').innerText = data.balance.toFixed(2);
+                document.getElementById('amountWords').innerText = data.amountWords;
+            }, 500);
+        });
+    </script>
+</body>
+</html>

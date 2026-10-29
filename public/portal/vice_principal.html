@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vice Principal Portal — Sunrise Public School</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+    
+</head>
+<body>
+    <div class="sidebar" id="sidebar"></div>
+    <div class="topbar">
+        <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+        <div class="topbar-search"><i class="fas fa-search"></i><input type="text" placeholder="Search school records..."></div>
+        <div class="topbar-right">
+            <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D"><i class="fas fa-moon"></i></button>
+            <div class="profile-menu"><div class="profile-avatar" id="topbarAvatar">V</div></div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="main-inner">
+            <div id="page-dashboard" class="page-section active">
+                <div class="welcome-banner csp-style-c82e9bceb5" >
+                    <div class="welcome-avatar-lg"><i class="fas fa-user-tie"></i></div>
+                    <div>
+                        <h1 id="welcomeName">Welcome, Vice Principal</h1>
+                        <p>School-wide operations and attendance monitoring.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="vpStudents">0</div>
+                            <div class="stat-label">Total Students</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="vpFaculty">0</div>
+                            <div class="stat-label">Total Faculty</div>
+                        </div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-icon"><i class="fas fa-check"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="vpPresent">0</div>
+                            <div class="stat-label">Present Today</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="card">
+                        <h3 class="card-title">Quick Actions</h3>
+                        <div class="quick-actions">
+                            <div class="quick-action-btn"><i class="fas fa-calendar-check text-success"></i><span>Leave Approvals</span></div>
+                            <div class="quick-action-btn"><i class="fas fa-bullhorn text-warning"></i><span>Broadcast Notice</span></div>
+                            <div class="quick-action-btn"><i class="fas fa-file-contract text-primary"></i><span>Discipline Log</span></div>
+                            <div class="quick-action-btn"><i class="fas fa-clipboard-list text-info"></i><span>Daily Reports</span></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Today's Notices</h3>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead><tr><th>Title</th><th>Date</th></tr></thead>
+                                <tbody><tr><td colspan="2" class="text-center text-muted">No notices today</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="page-profile" class="page-section">
+                <div class="section-header"><h2><i class="fas fa-user-circle"></i> My Profile</h2></div>
+                <div class="card csp-style-2905277e2d" >
+                    <div class="profile-big-avatar" id="profileBigAvatar">V</div>
+                    <h3 class="text-center csp-style-b1b46ed483" id="profileName" >Name</h3>
+                    <p class="text-center text-muted csp-style-b730b4e9f7" id="profileRole" >Vice Principal</p>
+                    <div class="text-center"><button class="btn btn-primary" data-csp-action-click="handleLogout" data-csp-args-click="%5B%5D">Logout</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/csp-actions.js"></script>
+    <script src="/js/portal-core.js"></script>
+    <script src="/js/secondary-portal.js"></script>
+</body></html>

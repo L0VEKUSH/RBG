@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Portal — Sunrise Public School</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+    
+</head>
+<body>
+    <div class="sidebar" id="sidebar"></div>
+    <div class="topbar">
+        <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+        <div class="topbar-right csp-style-0c09c5ad1d" >
+            <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D"><i class="fas fa-moon"></i></button>
+            <div class="profile-menu"><div class="profile-avatar" id="topbarAvatar">S</div></div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="main-inner">
+            <div id="page-dashboard" class="page-section active">
+                <div class="welcome-banner csp-style-1b8bbabad7" >
+                    <div class="welcome-avatar-lg"><i class="fas fa-user-tie"></i></div>
+                    <div>
+                        <h1 id="welcomeName">Welcome, Staff Member</h1>
+                        <p>View your profile, attendance, and leave balance.</p>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="card">
+                        <h3 class="card-title">Self Service Actions</h3>
+                        <div class="quick-actions">
+                            <div class="quick-action-btn"><i class="fas fa-calendar-plus text-primary"></i><span>Apply Leave</span></div>
+                            <div class="quick-action-btn"><i class="fas fa-clock text-info"></i><span>My Attendance</span></div>
+                            <div class="quick-action-btn"><i class="fas fa-envelope-open-text text-warning"></i><span>Notices</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="page-profile" class="page-section">
+                <div class="section-header"><h2><i class="fas fa-user-circle"></i> My Profile</h2></div>
+                <div class="card csp-style-2905277e2d" >
+                    <div class="profile-big-avatar" id="profileBigAvatar">S</div>
+                    <h3 class="text-center csp-style-b1b46ed483" id="profileName" >Name</h3>
+                    <p class="text-center text-muted csp-style-b730b4e9f7" id="profileRole" >Staff Member</p>
+                    <div class="text-center"><button class="btn btn-primary" data-csp-action-click="handleLogout" data-csp-args-click="%5B%5D">Logout</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/csp-actions.js"></script>
+    <script src="/js/portal-core.js"></script>
+    <script src="/js/secondary-portal.js"></script>
+</body></html>

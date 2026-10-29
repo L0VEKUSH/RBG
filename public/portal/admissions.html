@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admissions Portal — Sunrise Public School</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+    
+</head>
+<body>
+    <div class="sidebar" id="sidebar"></div>
+    <div class="topbar">
+        <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+        <div class="topbar-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search application...">
+        </div>
+        <div class="topbar-right">
+            <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D"><i class="fas fa-moon"></i></button>
+            <button class="topbar-btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
+            <div class="profile-menu">
+                <div class="profile-avatar" id="topbarAvatar">A</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="main-inner">
+            <!-- PAGE: DASHBOARD -->
+            <div id="page-dashboard" class="page-section active">
+                <div class="welcome-banner csp-style-960b415519" >
+                    <div class="welcome-avatar-lg"><i class="fas fa-user-plus"></i></div>
+                    <div>
+                        <h1 id="welcomeName">Welcome, Admissions Officer</h1>
+                        <p>Manage applications, review documents, and process enrollments.</p>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-pie"></i> Admission Pipeline</h2>
+                    <div class="actions">
+                        <button class="btn btn-outline"><i class="fas fa-download"></i> Export</button>
+                        <button class="btn btn-primary" data-csp-action-click="goToHash" data-csp-args-click="%5B%22%23new-application%22%5D"><i class="fas fa-plus"></i> New Form</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-inbox"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statSubmitted">0</div>
+                            <div class="stat-label">New Applications</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-search"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statReview">0</div>
+                            <div class="stat-label">Under Review</div>
+                        </div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statDocVerify">0</div>
+                            <div class="stat-label">Doc Verification</div>
+                        </div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="statApproved">0</div>
+                            <div class="stat-label">Approved</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="card">
+                        <h3 class="card-title">Recent Activity</h3>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>App No.</th>
+                                        <th>Applicant Name</th>
+                                        <th>Class</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentAppsBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Quick Actions</h3>
+                        <div class="quick-actions">
+                            <div class="quick-action-btn csp-action-target" data-csp-action-click="goToHash" data-csp-args-click="%5B%22%23verify-docs%22%5D" role="button" tabindex="0">
+                                <i class="fas fa-file-signature text-primary"></i>
+                                <span>Verify Docs</span>
+                            </div>
+                            <div class="quick-action-btn csp-action-target" data-csp-action-click="goToHash" data-csp-args-click="%5B%22%23interviews%22%5D" role="button" tabindex="0">
+                                <i class="fas fa-comments text-info"></i>
+                                <span>Interviews</span>
+                            </div>
+                            <div class="quick-action-btn csp-action-target" data-csp-action-click="goToHash" data-csp-args-click="%5B%22%23waitlist%22%5D" role="button" tabindex="0">
+                                <i class="fas fa-list-ol text-warning"></i>
+                                <span>Waitlist</span>
+                            </div>
+                            <div class="quick-action-btn csp-action-target" data-csp-action-click="goToHash" data-csp-args-click="%5B%22%23enrollment%22%5D" role="button" tabindex="0">
+                                <i class="fas fa-user-graduate text-success"></i>
+                                <span>Enroll</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: APPLICATIONS -->
+            <div id="page-applications" class="page-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-folder-open"></i> All Applications</h2>
+                </div>
+                <div class="card">
+                    <div class="filter-bar">
+                        <input type="text" class="filter-input" placeholder="Search by name, app number, email..." id="appSearch">
+                        <select class="filter-select" id="appClassFilter">
+                            <option value="">All Classes</option>
+                            <option value="Pre-Nursery">Pre-Nursery</option>
+                            <option value="1">Class 1</option>
+                            <option value="10">Class 10</option>
+                        </select>
+                        <select class="filter-select" id="appStatusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="Submitted">Submitted</option>
+                            <option value="Under_Review">Under Review</option>
+                            <option value="Document_Verification">Doc Verification</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                        <button class="btn btn-primary" data-csp-action-click="loadApplications" data-csp-args-click="%5B%5D"><i class="fas fa-filter"></i> Apply</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Application No</th>
+                                    <th>Student Name</th>
+                                    <th>Class</th>
+                                    <th>Applied On</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allAppsBody">
+                                <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: PROFILE -->
+            <div id="page-profile" class="page-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-user-circle"></i> My Profile</h2>
+                </div>
+                <div class="card csp-style-2905277e2d" >
+                    <div class="profile-big-avatar" id="profileBigAvatar">A</div>
+                    <h3 class="text-center csp-style-b1b46ed483" id="profileName" >Name</h3>
+                    <p class="text-center text-muted csp-style-b730b4e9f7" id="profileRole" >Admission Officer</p>
+                    
+                    <div class="profile-meta">
+                        <div class="profile-meta-item">
+                            <label>Email</label>
+                            <span id="profileEmail">-</span>
+                        </div>
+                        <div class="profile-meta-item">
+                            <label>Phone</label>
+                            <span id="profilePhone">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center csp-style-4f8dbc76c7" >
+                        <button class="btn btn-primary" data-csp-action-click="handleLogout" data-csp-args-click="%5B%5D"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/js/csp-actions.js"></script>
+    <script src="/vendor/chart.js/dist/chart.umd.min.js"></script>
+    <script src="/js/portal-core.js"></script>
+    <script src="/js/admissions-portal.js"></script>
+</body>
+</html>

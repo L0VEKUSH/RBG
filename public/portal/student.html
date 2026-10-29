@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal — Sunrise Public School</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+  
+</head>
+<body data-role="student">
+  <div class="sidebar-overlay csp-action-target" id="sidebarOverlay" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D" role="button" tabindex="0"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="fas fa-graduation-cap"></i>
+      <div><h2>Sunrise Public School</h2><small>Student Portal</small></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAvatar">S</div>
+      <div class="sidebar-user-info">
+        <h4 id="sidebarName">Student</h4>
+        <span class="role-badge" id="sidebarRole">Student</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" data-csp-action-click="logout" data-csp-args-click="%5B%5D"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+
+  <header class="topbar" id="topbar">
+    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <span class="topbar-breadcrumb" id="breadcrumb">Dashboard</span>
+    <div class="topbar-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="globalSearch" placeholder="Search..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
+        <div class="topbar-user-avatar" id="topbarAvatar">S</div>
+        <span class="topbar-user-name" id="topbarName">Student</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-inner">
+      <div class="toast-container" id="toastContainer"></div>
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page-section active" id="panel-dashboard">
+        
+        <div class="learning-focus-card">
+          <h2 id="dashGreeting">Good Morning! 👋</h2>
+          <p id="dashDate"></p>
+          <div id="nextClassWidget">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <div id="alertBanners"></div>
+
+        <div class="stats-grid csp-style-906b8c5a38" id="dashStats" >
+           <!-- Populated by JS -->
+        </div>
+
+        <div class="dashboard-grid">
+          <div>
+            <div class="card">
+              <div class="card-header"><h3><i class="fas fa-calendar-day"></i> Today's Timetable</h3></div>
+              <div class="card-body" id="todayTimetable"><div class="spinner csp-style-cbac136be3" ></div></div>
+            </div>
+          </div>
+          <div class="csp-style-56a7c8ecf6">
+            <div class="card">
+              <div class="card-header"><h3><i class="fas fa-book"></i> Homework Due</h3></div>
+              <div class="card-body" id="dashHomework"><div class="spinner csp-style-2ebb0dfa7c" ></div></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3><i class="fas fa-file-alt"></i> Upcoming Exams</h3></div>
+              <div class="card-body" id="dashExams"><div class="spinner csp-style-2ebb0dfa7c" ></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TIMETABLE ── -->
+      <div class="page-section" id="panel-timetable">
+        <div class="section-header">
+          <h2><i class="fas fa-clock csp-style-c6561e9481" ></i> My Timetable</h2>
+        </div>
+        <div class="card">
+          <div class="tab-bar csp-style-2e75ea95db" id="timetableDayTabs" ></div>
+          <div class="card-body" id="timetableContent"><div class="spinner csp-style-c4b102f94c" ></div></div>
+        </div>
+      </div>
+
+      <!-- ── HOMEWORK ── -->
+      <div class="page-section" id="panel-homework">
+        <div class="section-header">
+          <h2><i class="fas fa-book csp-style-c6561e9481" ></i> Homework</h2>
+        </div>
+        <div class="filter-bar">
+          <select class="filter-select" id="hwSubjectFilter" data-csp-action-change="filterHomework" data-csp-args-change="%5B%5D"><option value="">All Subjects</option></select>
+          <select class="filter-select" id="hwStatusFilter" data-csp-action-change="filterHomework" data-csp-args-change="%5B%5D">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="submitted">Submitted</option>
+            <option value="reviewed">Reviewed</option>
+          </select>
+        </div>
+        <div id="homeworkList" class="csp-style-2b8334d34f"></div>
+      </div>
+
+      <!-- ── MATERIALS (Study Material) ── -->
+      <div class="page-section" id="panel-materials">
+        <div class="section-header">
+          <h2><i class="fas fa-folder-open csp-style-c6561e9481" ></i> Study Materials</h2>
+        </div>
+        <div class="card">
+          <div class="card-body" id="materialsContent"><div class="spinner csp-style-c4b102f94c" ></div></div>
+        </div>
+      </div>
+
+      <!-- ── ATTENDANCE ── -->
+      <div class="page-section" id="panel-attendance">
+        <div class="section-header">
+          <h2><i class="fas fa-calendar-check csp-style-c6561e9481" ></i> Attendance</h2>
+          <div class="actions">
+            <select class="filter-select" id="attMonthSel" data-csp-action-change="loadMyAttendance" data-csp-args-change="%5B%5D"></select>
+          </div>
+        </div>
+        <div class="stats-main csp-style-e7e3e005bf" >
+          <div class="huge-pct" id="attOverallPct">--%</div>
+          <div class="csp-style-a4cf71690a">Overall Attendance</div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Monthly Overview</h3></div>
+          <div class="card-body" id="attCalendar"><div class="spinner csp-style-c4b102f94c" ></div></div>
+        </div>
+      </div>
+
+      <!-- ── EXAMS ── -->
+      <div class="page-section" id="panel-exams">
+        <div class="section-header">
+          <h2><i class="fas fa-file-alt csp-style-c6561e9481" ></i> Examinations</h2>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" data-csp-action-click="switchExamTab" data-csp-args-click="%5B%22upcoming%22%5D" data-csp-elements-click="1">Upcoming</button>
+          <button class="tab-btn" data-csp-action-click="switchExamTab" data-csp-args-click="%5B%22past%22%5D" data-csp-elements-click="1">Past</button>
+        </div>
+        <div class="tab-panel active" id="exams-upcoming">
+          <div id="upcomingExamsList" class="csp-style-2b8334d34f"></div>
+        </div>
+        <div class="tab-panel" id="exams-past">
+          <div id="pastExamsList" class="csp-style-2b8334d34f"></div>
+        </div>
+      </div>
+
+      <!-- ── RESULTS ── -->
+      <div class="page-section" id="panel-results">
+        <div class="section-header">
+          <h2><i class="fas fa-chart-bar csp-style-c6561e9481" ></i> Published Results</h2>
+        </div>
+        <div id="resultsContent"><div class="spinner csp-style-c4b102f94c" ></div></div>
+      </div>
+
+      <!-- ── FEES ── -->
+      <div class="page-section" id="panel-fees">
+        <div class="section-header">
+          <h2><i class="fas fa-rupee-sign csp-style-c6561e9481" ></i> Fee Ledger</h2>
+        </div>
+        <div class="fee-ledger">
+          <i class="fas fa-university csp-style-d530187e19" ></i>
+          <h3 class="csp-style-c6fa01b3f1">Offline Ledger Only</h3>
+          <p class="csp-style-7f7dfd408c">
+            Sunrise Public School uses an offline fee collection system. This section displays your fee ledger for reference only. 
+            <strong>All payments must be made at the school's fee counter via Cash or Demand Draft.</strong>
+          </p>
+        </div>
+        <div id="feesContent" class="csp-style-80dfcf9181"><div class="spinner csp-style-c4b102f94c" ></div></div>
+      </div>
+
+      <!-- ── LIBRARY ── -->
+      <div class="page-section" id="panel-library">
+        <div class="section-header">
+          <h2><i class="fas fa-book-open csp-style-c6561e9481" ></i> Library</h2>
+        </div>
+        <div id="myBooksContent"><div class="spinner csp-style-c4b102f94c" ></div></div>
+      </div>
+
+      <!-- ── NOTICES ── -->
+      <div class="page-section" id="panel-notices">
+        <div class="section-header">
+          <h2><i class="fas fa-bullhorn csp-style-c6561e9481" ></i> Notice Board</h2>
+        </div>
+        <div id="noticesList" class="csp-style-2b8334d34f"></div>
+      </div>
+
+      <!-- ── PROFILE ── -->
+      <div class="page-section" id="panel-profile">
+        <div class="section-header"><h2>My Profile</h2></div>
+        <div class="card" id="profileCard"><div class="spinner csp-style-a93ee26182" ></div></div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/js/csp-actions.js"></script>
+    <script src="/vendor/chart.js/dist/chart.umd.min.js"></script>
+  <script src="/js/portal-core.js"></script>
+  <script src="/js/student-portal.js"></script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Portal — Sunrise Public School</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+</head>
+<body data-role="finance">
+  <div class="sidebar-overlay csp-action-target" id="sidebarOverlay" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D" role="button" tabindex="0"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="fas fa-file-invoice-dollar"></i>
+      <div><h2>Sunrise Public School</h2><small>Finance Portal</small></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAvatar">F</div>
+      <div class="sidebar-user-info">
+        <h4 id="sidebarName">Accountant</h4>
+        <span class="role-badge" id="sidebarRole">Accountant</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" data-csp-action-click="logout" data-csp-args-click="%5B%5D"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+
+  <header class="topbar" id="topbar">
+    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <span class="topbar-breadcrumb" id="breadcrumb">Financial Overview</span>
+    <div class="topbar-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="globalSearch" placeholder="Search receipt, student ID..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notifications%22%5D" title="Alerts">
+        <i class="fas fa-bell"></i><span class="notif-dot csp-style-6aa34d7432" id="notifDot" ></span>
+      </button>
+      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
+        <div class="topbar-user-avatar" id="topbarAvatar">F</div>
+        <span class="topbar-user-name" id="topbarName">Accountant</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-inner">
+      <div class="toast-container" id="toastContainer"></div>
+
+      <!-- ── FINANCE DASHBOARD ── -->
+      <div class="page-section active" id="panel-dashboard">
+        <div class="welcome-banner csp-style-dc81005b61" >
+          <div>
+            <h1 id="dashGreeting">Good Morning! 👋</h1>
+            <p id="dashDate"></p>
+          </div>
+          <div class="welcome-avatar-lg csp-style-ada5096e8b" id="welcomeAvatar" >F</div>
+        </div>
+
+        <div class="stats-grid" id="financeStats">
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+        </div>
+
+        <div class="charts-row">
+          <div class="card csp-style-0b9aacad98" >
+            <div class="card-header">
+              <h3><i class="fas fa-chart-line"></i> Revenue Trend (Last 7 Days)</h3>
+            </div>
+            <div class="card-body csp-style-779e3b5ec0" ><canvas id="financeRevChart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3><i class="fas fa-receipt"></i> Recent Transactions</h3>
+            </div>
+            <div class="card-body csp-style-35eecf3e83" id="dashTxns" >
+              <div class="spinner csp-style-c4b102f94c" ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── FEE COLLECTION ── -->
+      <div class="page-section" id="panel-collection">
+        <div class="section-header">
+          <h2><i class="fas fa-hand-holding-usd csp-style-4b981e2816" ></i> Collect Fee</h2>
+        </div>
+        
+        <div class="card csp-style-155e37ed9b" >
+          <div class="card-body csp-style-d566f414ff" >
+            <div class="form-group csp-style-0adf663f4a" ><label>Student ID / Adm No.</label><input type="text" class="form-control" id="collSearchId" placeholder="e.g. ADM2023001"></div>
+            <div class="form-group csp-style-0adf663f4a" ><label>Or Select Class</label><select class="form-control" id="collSearchClass" data-csp-action-change="loadStudentsForCollection" data-csp-args-change="%5B%5D"><option value="">Class</option></select></div>
+            <div class="form-group csp-style-bba717edaa" ><label>Select Student</label><select class="form-control" id="collSearchStudent"><option value="">Student</option></select></div>
+            <button class="btn btn-primary" data-csp-action-click="lookupStudentFee" data-csp-args-click="%5B%5D"><i class="fas fa-search"></i> Lookup</button>
+          </div>
+        </div>
+
+        <div id="feeCollectArea" class="csp-style-6aa34d7432">
+          <div class="card csp-style-11fdea725c" >
+            <div class="card-header csp-style-67ff3b1847" >
+              <h3 id="fcStudentName">Student Name</h3>
+              <span class="badge badge-info" id="fcStudentMeta">Class · Adm</span>
+            </div>
+            <div class="card-body">
+              <div class="stats-grid csp-style-5ce7a99075" >
+                <div class="stat-card"><div class="stat-content"><div class="stat-value" id="fcTotal">₹0</div><div class="stat-label">Total Fee</div></div></div>
+                <div class="stat-card"><div class="stat-content"><div class="stat-value csp-style-f83fcad98e" id="fcPaid" >₹0</div><div class="stat-label">Paid</div></div></div>
+                <div class="stat-card"><div class="stat-content"><div class="stat-value csp-style-b83ba24323" id="fcPending" >₹0</div><div class="stat-label">Pending</div></div></div>
+              </div>
+              
+              <div class="csp-style-364d04928c">
+                <h4 class="csp-style-7b80e59e07">Record Payment</h4>
+                <div class="form-grid">
+                  <div class="form-group"><label>Amount to Pay (₹) <span class="required">*</span></label><input type="number" class="form-control" id="fcAmount" placeholder="Amount"></div>
+                  <div class="form-group"><label>Payment Method <span class="required">*</span></label><select class="form-control" id="fcMethod"><option>Cash</option><option>Card</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select></div>
+                  <div class="form-group csp-style-51377a917e" ><label>Remarks (Optional)</label><input type="text" class="form-control" id="fcRemarks" placeholder="Reference number or note"></div>
+                </div>
+                <button class="btn btn-primary" id="btnProcessPayment" data-csp-action-click="processPayment" data-csp-args-click="%5B%5D"><i class="fas fa-check-circle"></i> Process Payment</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── FEE DEFAULTERS ── -->
+      <div class="page-section" id="panel-defaulters">
+        <div class="section-header">
+          <h2><i class="fas fa-exclamation-circle csp-style-b83ba24323" ></i> Fee Defaulters</h2>
+          <button class="btn btn-secondary"><i class="fas fa-bell"></i> Send Reminders</button>
+        </div>
+        <div class="filter-bar">
+          <select class="filter-select" id="defaulterClassFilter" data-csp-action-change="loadDefaulters" data-csp-args-change="%5B%5D"><option value="">All Classes</option></select>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Adm No</th><th>Student Name</th><th>Class</th><th>Pending Amount</th><th>Action</th></tr></thead>
+              <tbody id="defaultersTableBody"><tr><td colspan="5"><div class="spinner"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── FINANCIAL REPORTS ── -->
+      <div class="page-section" id="panel-reports">
+        <div class="section-header">
+          <h2><i class="fas fa-chart-pie csp-style-4b981e2816" ></i> Financial Reports</h2>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Generate Report</h3></div>
+          <div class="card-body">
+            <div class="form-grid csp-style-159ccfce8b" >
+              <div class="form-group csp-style-ab79ea2b85" ><label>Report Type</label><select class="form-control" id="repType"><option value="daily">Daily Collection</option><option value="monthly">Monthly Summary</option><option value="outstanding">Outstanding Fees</option></select></div>
+              <div class="form-group csp-style-ab79ea2b85" ><label>From Date</label><input type="date" class="form-control" id="repFrom"></div>
+              <div class="form-group csp-style-ab79ea2b85" ><label>To Date</label><input type="date" class="form-control" id="repTo"></div>
+              <button class="btn btn-primary csp-style-b7aa1ec004"  data-csp-action-click="generateReport" data-csp-args-click="%5B%5D"><i class="fas fa-file-export"></i> Generate</button>
+            </div>
+          </div>
+        </div>
+        <div id="reportOutput" class="csp-style-80dfcf9181"></div>
+      </div>
+      
+      <div class="page-section" id="panel-notices"><div class="section-header"><h2>Notices</h2></div><div id="noticesList"></div></div>
+      <div class="page-section" id="panel-events"><div class="section-header"><h2>Events</h2></div><div id="eventsList"></div></div>
+      <div class="page-section" id="panel-profile"><div class="section-header"><h2>My Profile</h2></div><div class="card" id="profileCard"></div></div>
+      
+    </div>
+  </main>
+
+  <script src="/js/csp-actions.js"></script>
+    <script src="/vendor/chart.js/dist/chart.umd.min.js"></script>
+  <script src="/js/portal-core.js"></script>
+  <script src="/js/finance-portal.js"></script>
+</body>
+</html>

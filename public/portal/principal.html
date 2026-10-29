@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Principal Portal — Sunrise Public School</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+</head>
+<body data-role="principal">
+  <div class="sidebar-overlay csp-action-target" id="sidebarOverlay" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D" role="button" tabindex="0"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="fas fa-university"></i>
+      <div><h2>Sunrise Public School</h2><small>Executive Portal</small></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAvatar">P</div>
+      <div class="sidebar-user-info">
+        <h4 id="sidebarName">Principal</h4>
+        <span class="role-badge" id="sidebarRole">Principal</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" data-csp-action-click="logout" data-csp-args-click="%5B%5D"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+
+  <header class="topbar" id="topbar">
+    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <span class="topbar-breadcrumb" id="breadcrumb">Executive Dashboard</span>
+    <div class="topbar-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="globalSearch" placeholder="Global search..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notices%22%5D" title="Alerts">
+        <i class="fas fa-bell"></i><span class="notif-dot csp-style-6aa34d7432" id="notifDot" ></span>
+      </button>
+      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
+        <div class="topbar-user-avatar" id="topbarAvatar">P</div>
+        <span class="topbar-user-name" id="topbarName">Principal</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-inner">
+      <div class="toast-container" id="toastContainer"></div>
+
+      <!-- ── EXECUTIVE DASHBOARD ── -->
+      <div class="page-section active" id="panel-dashboard">
+        <div class="welcome-banner csp-style-140ca182ac" >
+          <div>
+            <h1 id="dashGreeting">Executive Overview</h1>
+            <p id="dashDate" class="csp-style-500708668c"></p>
+          </div>
+          <div class="welcome-avatar-lg csp-style-753a24fe06" id="welcomeAvatar" >P</div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="stats-grid csp-style-6b0f175a3a" id="principalKpis" >
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+
+        <div class="charts-row">
+          <div class="card csp-style-f4d2e5376a" >
+            <div class="card-header">
+              <h3><i class="fas fa-chart-line"></i> School Attendance Trend</h3>
+            </div>
+            <div class="card-body csp-style-7191acabd1" ><canvas id="dashAttChart"></canvas></div>
+          </div>
+          
+          <div class="card csp-style-98545d1c16" >
+            <div class="card-header">
+              <h3><i class="fas fa-clock"></i> Pending Approvals Summary</h3>
+            </div>
+            <div class="card-body csp-style-df0b9c1e6a" >
+                <canvas id="dashApprovalsChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="widgets-row">
+          <!-- Upcoming Exams -->
+          <div class="card">
+            <div class="card-header"><h3><i class="fas fa-file-alt"></i> Upcoming Exams</h3><button class="btn btn-ghost btn-sm" data-csp-action-click="showPanel" data-csp-args-click="%5B%22exams%22%5D">View All</button></div>
+            <div class="card-body" id="dashExams"><div class="spinner"></div></div>
+          </div>
+          
+          <!-- Recent Notices -->
+          <div class="card">
+            <div class="card-header"><h3><i class="fas fa-bullhorn"></i> Active Notices</h3><button class="btn btn-ghost btn-sm" data-csp-action-click="openModal" data-csp-args-click="%5B%22addNoticeModal%22%5D"><i class="fas fa-plus"></i></button></div>
+            <div class="card-body" id="dashNotices"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STUDENTS ── -->
+      <div class="page-section" id="panel-students">
+        <div class="section-header">
+          <h2><i class="fas fa-user-graduate csp-style-3930c36a16" ></i> Student Master</h2>
+        </div>
+        <!-- Prominent Search Bar -->
+        <div class="card csp-style-7aad6e0546" >
+            <h3 class="csp-style-66e3acae36">Student Search</h3>
+            <div class="csp-style-efb5c1fa3e">
+                <input type="text" id="studentSearchQuery" class="form-control csp-style-27fdaded28" placeholder="Search by Name, Adm No, Roll No..." >
+                <select id="studentSearchClass" class="form-control csp-style-0cbd885e3f" >
+                    <option value="">All Classes</option>
+                </select>
+                <button class="btn btn-primary" data-csp-action-click="searchStudents" data-csp-args-click="%5B%5D"><i class="fas fa-search"></i> Search</button>
+            </div>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Adm. No</th><th>Name</th><th>Class</th><th>Roll No</th><th>Contact</th></tr></thead>
+              <tbody id="studentTableBody"><tr><td colspan="5"><div class="empty-state">Use the search bar to find students</div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TEACHERS ── -->
+      <div class="page-section" id="panel-teachers">
+        <div class="section-header">
+          <h2><i class="fas fa-chalkboard-teacher csp-style-3930c36a16" ></i> Teacher Overview</h2>
+        </div>
+        <div class="stats-grid csp-style-d6341373c4" id="teacherKpis" >
+          <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+        </div>
+        <div class="filter-bar">
+          <input type="text" class="filter-input" id="staffSearch" placeholder="Search name or department..." data-csp-action-input="filterStaff" data-csp-args-input="%5B%5D">
+          <select class="filter-select" id="staffDeptFilter" data-csp-action-change="filterStaff" data-csp-args-change="%5B%5D">
+            <option value="">All Departments</option><option>Teaching</option><option>Admin</option><option>Support</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Status</th></tr></thead>
+              <tbody id="staffTableBody"><tr><td colspan="4"><div class="spinner"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ATTENDANCE ANALYTICS ── -->
+      <div class="page-section" id="panel-attendance">
+        <div class="section-header">
+          <h2><i class="fas fa-calendar-check csp-style-3930c36a16" ></i> Attendance Analytics</h2>
+        </div>
+        <div class="charts-row">
+            <div class="card">
+                <div class="card-header"><h3>School Attendance Trend (Monthly)</h3></div>
+                <div class="card-body csp-style-7191acabd1" ><canvas id="attendanceTrendChart"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>Low Attendance Classes</h3></div>
+                <div class="card-body csp-style-7191acabd1" ><canvas id="lowAttendanceChart"></canvas></div>
+            </div>
+        </div>
+      </div>
+
+      <!-- ── ACADEMICS ANALYTICS ── -->
+      <div class="page-section" id="panel-academics">
+        <div class="section-header">
+          <h2><i class="fas fa-book-open csp-style-3930c36a16" ></i> Academic Analytics</h2>
+        </div>
+        <div class="charts-row">
+            <div class="card">
+                <div class="card-header"><h3>Class Performance (Average Marks)</h3></div>
+                <div class="card-body csp-style-7191acabd1" ><canvas id="classPerformanceChart"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>Pass Percentage by Subject</h3></div>
+                <div class="card-body csp-style-7191acabd1" ><canvas id="subjectPassChart"></canvas></div>
+            </div>
+        </div>
+      </div>
+
+      <!-- ── EXAMS ── -->
+      <div class="page-section" id="panel-exams">
+        <div class="section-header">
+          <h2><i class="fas fa-file-alt csp-style-3930c36a16" ></i> Upcoming Exams</h2>
+        </div>
+        <div class="card">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead><tr><th>Exam Name</th><th>Class</th><th>Start Date</th><th>End Date</th><th>Status</th></tr></thead>
+                    <tbody id="examsTableBody"><tr><td colspan="5"><div class="spinner"></div></td></tr></tbody>
+                </table>
+            </div>
+        </div>
+      </div>
+
+      <!-- ── ADMISSIONS ── -->
+      <div class="page-section" id="panel-admissions">
+        <div class="section-header">
+          <h2><i class="fas fa-user-plus csp-style-3930c36a16" ></i> Admissions</h2>
+        </div>
+        <div class="card">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead><tr><th>Applicant Name</th><th>Class Applied</th><th>Date</th><th>Status</th></tr></thead>
+                    <tbody id="admissionsTableBody"><tr><td colspan="4"><div class="spinner"></div></td></tr></tbody>
+                </table>
+            </div>
+        </div>
+      </div>
+
+      <!-- ── CENTRAL APPROVALS ── -->
+      <div class="page-section" id="panel-approvals">
+        <div class="section-header">
+          <h2><i class="fas fa-check-circle csp-style-3930c36a16" ></i> Pending Approvals</h2>
+        </div>
+        <div class="tabs csp-style-bc1a27b138" >
+            <button class="btn btn-ghost tab-btn active" data-csp-action-click="switchApprovalTab" data-csp-args-click="%5B%22leave%22%5D" id="tab-btn-leave">Staff Leaves</button>
+            <button class="btn btn-ghost tab-btn" data-csp-action-click="switchApprovalTab" data-csp-args-click="%5B%22admission%22%5D" id="tab-btn-admission">Admissions</button>
+        </div>
+        
+        <div id="approvals-leave" class="approval-tab">
+            <div class="card">
+            <div class="table-wrapper">
+                <table class="data-table">
+                <thead><tr><th>Applicant</th><th>Dates</th><th>Type</th><th>Reason</th><th>Action</th></tr></thead>
+                <tbody id="leaveApproveBody"><tr><td colspan="5"><div class="spinner"></div></td></tr></tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+        
+        <div id="approvals-admission" class="approval-tab csp-style-d0466aa33f" >
+            <div class="card">
+            <div class="table-wrapper">
+                <table class="data-table">
+                <thead><tr><th>Applicant Name</th><th>Class Applied</th><th>Previous School</th><th>Action</th></tr></thead>
+                <tbody id="admissionApproveBody"><tr><td colspan="4"><div class="spinner"></div></td></tr></tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- ── REPORTS ── -->
+      <div class="page-section" id="panel-reports">
+        <div class="section-header">
+          <h2><i class="fas fa-chart-pie csp-style-3930c36a16" ></i> Reports</h2>
+        </div>
+        <div class="card"><div class="card-body"><div class="empty-state"><i class="fas fa-cogs csp-style-f59a05163f" ></i> Custom reporting module coming soon.</div></div></div>
+      </div>
+      
+      <!-- Stubs for generic panels -->
+      <div class="page-section" id="panel-notices"><div class="section-header"><h2>Notices</h2><button class="btn btn-primary" data-csp-action-click="openModal" data-csp-args-click="%5B%22addNoticeModal%22%5D"><i class="fas fa-plus"></i> New Notice</button></div><div id="noticesList"></div></div>
+      <div class="page-section" id="panel-profile"><div class="section-header"><h2>My Profile</h2></div><div class="card" id="profileCard"></div></div>
+    </div>
+  </main>
+
+  <!-- Add Notice Modal -->
+  <div class="modal-overlay" id="addNoticeModal">
+    <div class="modal">
+      <div class="modal-header"><h3><i class="fas fa-bullhorn"></i> Publish Notice</h3><button class="modal-close" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addNoticeModal%22%5D"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Title <span class="required">*</span></label><input class="form-control" id="noticeTitle"></div>
+        <div class="form-grid csp-style-9430410d62" >
+          <div class="form-group"><label>Type</label><select class="form-control" id="noticeType"><option>General</option><option>Academic</option><option>Holiday</option></select></div>
+          <div class="form-group"><label>Priority</label><select class="form-control" id="noticePri"><option>Medium</option><option>High</option><option>Urgent</option></select></div>
+        </div>
+        <div class="form-group"><label>Content</label><textarea class="form-control" id="noticeContent" rows="4"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addNoticeModal%22%5D">Cancel</button><button class="btn btn-primary" data-csp-action-click="submitNotice" data-csp-args-click="%5B%5D"><i class="fas fa-paper-plane"></i> Publish</button></div>
+    </div>
+  </div>
+
+  <script src="/js/csp-actions.js"></script>
+    <script src="/vendor/chart.js/dist/chart.umd.min.js"></script>
+  <script src="/js/portal-core.js"></script>
+  <script src="/js/principal-portal.js"></script>
+</body>
+</html>

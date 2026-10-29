@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Official notice board of Sunrise Public School. Stay updated with the latest school announcements, circulars, and notices.">
+    <title>Notices | Sunrise Public School</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="/css/website.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="container header-container">
+            <div class="logo-area">
+                <i class="fas fa-sun logo-icon"></i>
+                <div class="logo-text">
+                    <h1>Sunrise Public School</h1>
+                    <p>Nurturing Excellence Since 1995</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    <nav class="main-nav" id="main-nav">
+        <div class="container nav-container">
+            <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="/index.html">Home</a></li>
+                <li><a href="/pages/about.html">About</a></li>
+                <li><a href="/pages/academics.html">Academics</a></li>
+                <li><a href="/pages/admissions.html">Admissions</a></li>
+                <li><a href="/pages/facilities.html">Facilities</a></li>
+                <li><a href="/pages/events.html">Events</a></li>
+                <li><a href="/pages/gallery.html">Gallery</a></li>
+                <li><a href="/pages/results.html">Results</a></li>
+                <li><a href="/pages/notices.html" class="active">Notices</a></li>
+                <li><a href="/pages/contact.html">Contact</a></li>
+                <li><a href="/portal/login.html" class="btn-login"><i class="fas fa-user-circle"></i> Portal Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h1>Notice Board</h1>
+            <div class="breadcrumb"><a href="/index.html">Home</a> / Notices</div>
+        </div>
+    </div>
+
+    <section class="section">
+        <div class="container">
+            <div class="notices-list card" id="notices-page-list">
+                <!-- Populated via JS -->
+                <div class="loading-state">Loading notices...</div>
+            </div>
+        </div>
+    </section>
+
+    <script src="/js/csp-actions.js"></script>
+    <script src="/js/website.js"></script>
+    <script src="/js/public-pages.js"></script>
+</body>
+</html>
+
+
+

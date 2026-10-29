@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Portal — Sunrise Public School</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+    <link rel="stylesheet" href="/css/csp-hardening.css">
+  
+</head>
+<body data-role="teacher">
+  <div class="sidebar-overlay csp-action-target" id="sidebarOverlay" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D" role="button" tabindex="0"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="fas fa-chalkboard-teacher"></i>
+      <div><h2>Sunrise Public School</h2><small>Teacher Portal</small></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAvatar">T</div>
+      <div class="sidebar-user-info">
+        <h4 id="sidebarName">Teacher</h4>
+        <span class="role-badge" id="sidebarRole">Teacher</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" data-csp-action-click="logout" data-csp-args-click="%5B%5D"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+
+  <header class="topbar" id="topbar">
+    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <span class="topbar-breadcrumb" id="breadcrumb">Today</span>
+    <div class="topbar-search">
+      <i class="fas fa-search"></i>
+      <input type="text" id="globalSearch" placeholder="Search students..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notices%22%5D" title="Notices">
+        <i class="fas fa-bell"></i><span class="notif-dot csp-style-6aa34d7432" id="notifDot" ></span>
+      </button>
+      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
+        <div class="topbar-user-avatar" id="topbarAvatar">T</div>
+        <span class="topbar-user-name" id="topbarName">Teacher</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-inner">
+      <div class="toast-container" id="toastContainer"></div>
+
+      <!-- ── DASHBOARD (TODAY) ── -->
+      <div class="page-section active" id="panel-dashboard">
+        <div class="welcome-banner csp-style-6907009edd" >
+          <div>
+            <h1 id="dashGreeting">Good Morning! 👋</h1>
+            <p id="dashDate"></p>
+          </div>
+          <div class="welcome-avatar-lg csp-style-921c1de21d" id="welcomeAvatar" >T</div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Main Content Left -->
+          <div class="dashboard-main">
+            <!-- Today's Schedule -->
+            <div class="card csp-style-2bc0ac4cf1" >
+              <div class="card-header">
+                <h3><i class="fas fa-calendar-day"></i> Today's Classes</h3>
+                <span class="badge badge-teal" id="todayClassCount">0 classes</span>
+              </div>
+              <div class="card-body csp-style-036e867a69" id="todaySchedule" >
+                <div class="spinner"></div>
+              </div>
+            </div>
+            
+            <!-- Pending Attendance -->
+            <div class="card csp-style-ba8fd260e1" >
+              <div class="card-header">
+                <h3><i class="fas fa-clipboard-check"></i> Attendance Pending</h3>
+              </div>
+              <div class="card-body" id="dashAttendancePending">
+                <div class="spinner"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Sidebar Right -->
+          <div class="dashboard-sidebar">
+            <!-- Homework -->
+            <div class="card mb-4">
+              <div class="card-header">
+                <h3><i class="fas fa-book"></i> Homework Tasks</h3>
+              </div>
+              <div class="card-body" id="dashHomework">
+                <div class="spinner"></div>
+              </div>
+            </div>
+            <!-- Upcoming Exams -->
+            <div class="card mt-4">
+              <div class="card-header">
+                <h3><i class="fas fa-file-alt"></i> Upcoming Exams</h3>
+              </div>
+              <div class="card-body" id="dashExams">
+                <div class="spinner"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MY CLASSES ── -->
+      <div class="page-section" id="panel-classes">
+        <div class="section-header"><h2><i class="fas fa-chalkboard csp-style-3c61c26578" ></i> My Classes</h2></div>
+        <div id="myClassesGrid" class="csp-style-464a3aa992"><div class="spinner"></div></div>
+      </div>
+
+      <!-- ── ATTENDANCE ── -->
+      <div class="page-section" id="panel-attendance">
+        <div class="section-header">
+          <h2><i class="fas fa-user-check csp-style-3c61c26578" ></i> Mark Attendance</h2>
+          <button class="btn btn-primary" id="btnSaveAttendance" data-csp-action-click="saveAttendance" data-csp-args-click="%5B%5D" disabled><i class="fas fa-save"></i> Save Attendance</button>
+        </div>
+        
+        <div class="filter-bar csp-style-07d1b1c536" >
+          <div class="form-group csp-style-0adf663f4a" ><label>Class</label><select class="form-control" id="attClassSel" data-csp-action-change="loadClassRosterForAttendance" data-csp-args-change="%5B%5D"></select></div>
+          <div class="form-group csp-style-0adf663f4a" ><label>Date</label><input type="date" class="form-control" id="attDateSel" data-csp-action-change="loadClassRosterForAttendance" data-csp-args-change="%5B%5D"></div>
+          <button class="btn btn-secondary csp-style-39eadb9054"  data-csp-action-click="loadClassRosterForAttendance" data-csp-args-click="%5B%5D"><i class="fas fa-sync"></i> Load</button>
+        </div>
+
+        <div id="attSummaryWrap" class="csp-style-a38a2d5e53">
+          <div class="att-summary-bar card csp-style-f087dbc230" >
+             <div class="csp-style-a302dc283e">
+               <div class="att-stat-item csp-style-905008530c" ><div class="att-stat-num csp-style-eedf4963d8" id="attSumP" >0</div><div class="att-stat-lbl">Present</div></div>
+               <div class="att-stat-item csp-style-905008530c" ><div class="att-stat-num csp-style-5317fb3bdf" id="attSumA" >0</div><div class="att-stat-lbl">Absent</div></div>
+               <div class="att-stat-item csp-style-905008530c" ><div class="att-stat-num csp-style-8a4c68198a" id="attSumL" >0</div><div class="att-stat-lbl">Late</div></div>
+               <div class="att-stat-item csp-style-905008530c" ><div class="att-stat-num csp-style-b5f1f0766d" id="attSumT" >0</div><div class="att-stat-lbl">Total</div></div>
+             </div>
+             <div class="csp-style-5ebc24ddbb">
+                <div class="att-pct-wrap">
+                  <div class="att-pct-track csp-style-3bb259ede7" ><div class="att-pct-fill csp-style-008d24f684" id="attPctBar" ></div></div>
+                  <div class="csp-style-aef73ee7b7" id="attPctText">0% Present</div>
+                </div>
+             </div>
+             <div class="csp-style-6e49c673a0">
+               <button class="btn btn-sm csp-style-457bc2c776"  data-csp-action-click="markAllPresent" data-csp-args-click="%5B%5D"><i class="fas fa-check-double"></i> Present All</button>
+               <button class="btn btn-sm csp-style-779ccf5daf"  data-csp-action-click="markAllAbsent" data-csp-args-click="%5B%5D"><i class="fas fa-times-circle"></i> Absent All</button>
+             </div>
+          </div>
+
+          <div id="attStudentList" class="csp-style-d0e35ce7f5"></div>
+        </div>
+        
+        <div id="attEmptyState"><div class="empty-state"><i class="fas fa-clipboard-list"></i><h4>Select Class & Date</h4><p>Choose a class from above to start marking attendance.</p></div></div>
+      </div>
+
+      <!-- ── HOMEWORK ── -->
+      <div class="page-section" id="panel-homework">
+        <div class="section-header">
+          <h2><i class="fas fa-book csp-style-3c61c26578" ></i> Homework Management</h2>
+          <button class="btn btn-primary" data-csp-action-click="openModal" data-csp-args-click="%5B%22addHomeworkModal%22%5D"><i class="fas fa-plus"></i> Assign New</button>
+        </div>
+        <div class="filter-bar">
+          <select class="filter-select" id="hwClassFilter" data-csp-action-change="filterTeacherHomework" data-csp-args-change="%5B%5D"><option value="">All Classes</option></select>
+        </div>
+        <div id="teacherHomeworkList" class="csp-style-2b8334d34f"><div class="spinner"></div></div>
+      </div>
+
+      <!-- ── MARKS ── -->
+      <div class="page-section" id="panel-marks">
+        <div class="section-header">
+          <h2><i class="fas fa-edit csp-style-3c61c26578" ></i> Enter Marks</h2>
+          <button class="btn btn-primary" id="btnSaveMarks" data-csp-action-click="saveMarks" data-csp-args-click="%5B%5D" disabled><i class="fas fa-save"></i> Save Marks</button>
+        </div>
+        
+        <div class="filter-bar csp-style-73347482d1" >
+          <select class="form-control csp-style-5e96948257" id="marksClass"  data-csp-action-change="updateMarksSubjectList" data-csp-args-change="%5B%5D"><option value="">Class</option></select>
+          <select class="form-control csp-style-2a551eb8eb" id="marksSubject" ><option value="">Subject</option></select>
+          <select class="form-control csp-style-2a551eb8eb" id="marksExam" >
+            <option value="">Exam Type</option><option>Unit Test 1</option><option>Unit Test 2</option><option>Half Yearly</option><option>Annual</option>
+          </select>
+          <input type="number" class="form-control csp-style-ebb13c75de" id="marksMax" placeholder="Max Marks"  value="100" data-csp-action-change="recalculateAllGrades" data-csp-args-change="%5B%5D">
+          <button class="btn btn-secondary" data-csp-action-click="loadStudentsForMarks" data-csp-args-click="%5B%5D"><i class="fas fa-table"></i> Load Sheet</button>
+        </div>
+
+        <div class="card csp-style-80dfcf9181" >
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th class="csp-style-91269935bd">Roll</th><th>Student</th><th class="csp-style-d334b57bfc">Marks</th><th class="csp-style-6d2a18baae">Percentage</th><th class="csp-style-6d2a18baae">Grade</th></tr></thead>
+              <tbody id="marksSheetBody"><tr><td colspan="5"><div class="empty-state csp-style-be6df18e8a" ><i class="fas fa-edit"></i><h4>Select Class & Exam</h4></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ROSTER (My Students) ── -->
+      <div class="page-section" id="panel-roster">
+        <div class="section-header"><h2><i class="fas fa-users csp-style-3c61c26578" ></i> Students List</h2></div>
+        <div class="filter-bar"><select class="filter-select" id="rosterClassSel" data-csp-action-change="loadRoster" data-csp-args-change="%5B%5D"></select></div>
+        <div id="rosterGrid" class="csp-style-61cf4c713c"><div class="spinner"></div></div>
+      </div>
+      
+      <!-- ── OTHER PANELS ── -->
+      <div class="page-section" id="panel-materials">
+        <div class="section-header"><h2><i class="fas fa-folder-open csp-style-3c61c26578" ></i> Study Materials</h2></div>
+        <div class="empty-state"><i class="fas fa-folder-open"></i><h4>Study Materials</h4><p>Upload and manage study resources for your classes.</p></div>
+      </div>
+      <div class="page-section" id="panel-exams">
+        <div class="section-header"><h2><i class="fas fa-file-alt csp-style-3c61c26578" ></i> Upcoming Exams</h2></div>
+        <div class="empty-state"><i class="fas fa-file-alt"></i><h4>Exams</h4><p>View upcoming examinations.</p></div>
+      </div>
+      <div class="page-section" id="panel-notices"><div class="section-header"><h2><i class="fas fa-bell"></i> Notices</h2></div><div id="noticesList"></div></div>
+      <div class="page-section" id="panel-leave">
+        <div class="section-header"><h2><i class="fas fa-sign-out-alt csp-style-3c61c26578" ></i> Leave Management</h2></div>
+        <div class="empty-state"><i class="fas fa-sign-out-alt"></i><h4>Apply for Leave</h4><p>Submit and track your leave applications.</p></div>
+      </div>
+      <div class="page-section" id="panel-profile"><div class="section-header"><h2>My Profile</h2></div><div class="card" id="profileCard"></div></div>
+      
+    </div>
+  </main>
+
+  <!-- Add Homework Modal -->
+  <div class="modal-overlay" id="addHomeworkModal">
+    <div class="modal">
+      <div class="modal-header"><h3><i class="fas fa-book"></i> Assign Homework</h3><button class="modal-close" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addHomeworkModal%22%5D"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Title <span class="required">*</span></label><input class="form-control" id="newHwTitle"></div>
+        <div class="form-grid csp-style-9430410d62" >
+          <div class="form-group"><label>Class <span class="required">*</span></label><select class="form-control" id="newHwClass"></select></div>
+          <div class="form-group"><label>Subject <span class="required">*</span></label><input class="form-control" id="newHwSubject"></div>
+        </div>
+        <div class="form-group"><label>Due Date <span class="required">*</span></label><input type="date" class="form-control" id="newHwDate"></div>
+        <div class="form-group"><label>Description</label><textarea class="form-control" id="newHwDesc" rows="3"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addHomeworkModal%22%5D">Cancel</button><button class="btn btn-primary" data-csp-action-click="submitNewHomework" data-csp-args-click="%5B%5D"><i class="fas fa-save"></i> Assign</button></div>
+    </div>
+  </div>
+
+  <script src="/js/csp-actions.js"></script>
+    <script src="/vendor/chart.js/dist/chart.umd.min.js"></script>
+  <script src="/js/portal-core.js"></script>
+  <script src="/js/teacher-portal.js"></script>
+</body>
+</html>
