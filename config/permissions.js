@@ -138,6 +138,7 @@ const PERMISSIONS = {
     'attendance.view',
     'attendance.report',
     'exams.view',
+    'marks.view',
     'results.view',
     'results.publish',
     'fees.report',
@@ -146,7 +147,9 @@ const PERMISSIONS = {
     'admissions.approve',
     'reports.view',
     'reports.export',
-    'notices.create'
+    'notices.create',
+    'leave.view',
+    'leave.approve'
   ],
   VICE_PRINCIPAL: [
     'students.view',

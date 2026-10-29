@@ -10,22 +10,32 @@ const SubjectAllocation = require('../models/SubjectAllocation');
 // The user prompt specifically asked to implement reusable middleware: requireAuth(), requirePermission(), requireRole(), requireOwnership(), requireClassAccess(), requireSubjectAccess()
 
 /**
- * Check if user has specific roles
+ * Check if user has specific roles.
+ *
+ * BYPASS POLICY (Fix A):
+ *  - super_admin implicitly passes every role check (they are the highest role).
+ *  - 'admin' and 'faculty' are legacy aliases: when listed as allowed roles they
+ *    expand to canonical equivalents, but super_admin implicit pass is the only
+ *    unconditional bypass.
+ *  - No other implicit promotion occurs.
  */
 exports.requireRole = (...roles) => {
   return (req, res, next) => {
     if (!req.user) return next(new ErrorResponse('Not authenticated', 401));
+
+    // super_admin can access any role-gated route.
+    if (req.user.role === 'super_admin') return next();
+
     const expandedRoles = new Set(roles);
+    // Expand legacy aliases when the caller allows them.
     if (expandedRoles.has('admin')) {
-      expandedRoles.add('super_admin');
       expandedRoles.add('school_admin');
     }
     if (expandedRoles.has('faculty')) {
       expandedRoles.add('teacher');
       expandedRoles.add('class_teacher');
     }
-    expandedRoles.add('super_admin');
-    if (!expandedRoles.has(req.user.role) && !expandedRoles.has(req.user.normalizedRole)) {
+    if (!expandedRoles.has(req.user.role)) {
       return next(new ErrorResponse('Role not authorized to access this resource', 403));
     }
     next();
@@ -33,20 +43,31 @@ exports.requireRole = (...roles) => {
 };
 
 /**
- * Check granular permissions
+ * Check granular permissions.
+ *
+ * BYPASS POLICY (Fix A):
+ *  - super_admin has the wildcard '*' permission in the matrix and bypasses the
+ *    loop for performance only.
+ *  - school_admin and 'admin' (legacy alias) must pass through the normal
+ *    permission matrix. They have an explicit, broad set of permissions defined
+ *    in PERMISSIONS.SCHOOL_ADMIN. If a route requires a permission not in that
+ *    set, they are correctly denied.
+ *  - No other role receives an implicit bypass.
  */
 exports.requirePermission = (...permissions) => {
   return (req, res, next) => {
     if (!req.user) return next(new ErrorResponse('Not authenticated', 401));
-    if (['super_admin', 'school_admin', 'admin'].includes(req.user.role)) return next();
-    
+
+    // Only super_admin gets an unconditional pass (they hold '*' in the matrix).
+    if (req.user.role === 'super_admin') return next();
+
     const rolePerms = getRolePermissions(req.user.role);
     const userPerms = req.user.permissions || [];
-    
-    // Calculate final effective permissions
-    // Precedence rule: USER overrides ROLE.
-    // If userPerms has '-perm', it DENIES 'perm' even if role allows it.
-    // If userPerms has 'perm', it ALLOWS 'perm' even if role denies it.
+
+    // Calculate final effective permissions.
+    // Precedence: USER overrides ROLE.
+    // '-perm' in userPerms DENIES 'perm' even if role allows it.
+    // 'perm' in userPerms ALLOWS 'perm' even if role denies it.
     let effectivePerms = new Set(rolePerms);
     userPerms.forEach(p => {
       if (p.startsWith('-')) {
@@ -55,9 +76,9 @@ exports.requirePermission = (...permissions) => {
         effectivePerms.add(p);
       }
     });
-    
+
     const hasPermission = permissions.some(p => effectivePerms.has(p) || effectivePerms.has('*'));
-    
+
     if (!hasPermission) {
       return next(new ErrorResponse(`Permission denied. Required: ${permissions.join(' or ')}`, 403));
     }
@@ -68,11 +89,13 @@ exports.requirePermission = (...permissions) => {
 exports.requireAllPermissions = (...permissions) => {
   return (req, res, next) => {
     if (!req.user) return next(new ErrorResponse('Not authenticated', 401));
-    if (['super_admin', 'school_admin', 'admin'].includes(req.user.role)) return next();
-    
+
+    // Only super_admin gets an unconditional pass.
+    if (req.user.role === 'super_admin') return next();
+
     const rolePerms = getRolePermissions(req.user.role);
     const userPerms = req.user.permissions || [];
-    
+
     let effectivePerms = new Set(rolePerms);
     userPerms.forEach(p => {
       if (p.startsWith('-')) {
@@ -81,11 +104,11 @@ exports.requireAllPermissions = (...permissions) => {
         effectivePerms.add(p);
       }
     });
-    
+
     if (effectivePerms.has('*')) return next();
-    
+
     const hasPermission = permissions.every(p => effectivePerms.has(p));
-    
+
     if (!hasPermission) {
       return next(new ErrorResponse(`Permission denied. Required all of: ${permissions.join(', ')}`, 403));
     }

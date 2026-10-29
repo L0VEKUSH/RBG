@@ -1,5 +1,5 @@
 /**
- * UAT Test Runner — Sunrise Public School ERP
+ * UAT Test Runner — RBG School ERP
  * Tests all three primary role workflows end-to-end
  */
 
@@ -40,7 +40,7 @@ async function login(email, password) {
 
 async function run() {
   console.log('\n══════════════════════════════════════════════════════════');
-  console.log(' SUNRISE PUBLIC SCHOOL ERP — UAT TEST RUNNER');
+  console.log(' RBG SCHOOL ERP — UAT TEST RUNNER');
   console.log('══════════════════════════════════════════════════════════\n');
 
   // ── SETUP: Login all roles ──────────────────────────────────────
@@ -76,9 +76,9 @@ async function run() {
   check('Teacher dashboard loads (200)', tDash.status === 200);
   check('Teacher dashboard has data',    !!tDash.data?.data);
 
-  // 1b. Timetable
+  // 1b. Timetable — teacher must have an accessible timetable endpoint (route exists, data may be empty)
   const ttMe = await api('GET', '/timetable/my-timetable', null, TEACHER_TOKEN);
-  check('Timetable fetch succeeds', ttMe.status === 200 || ttMe.status === 404, false);
+  check('Timetable endpoint reachable (not 404/500)', ttMe.status === 200 || ttMe.status === 204);
 
   // 1c. Get class roster for Class 9
   const roster9 = await api('GET', '/students/class/9', null, TEACHER_TOKEN);
@@ -99,14 +99,14 @@ async function run() {
   const attMark = await api('POST', '/attendance/mark', attPayload, CT_TOKEN);
   check('Attendance marked successfully', attMark.status === 200 || attMark.status === 201);
 
-  // 1e. Attendance — verify it persists
+  // 1e. Attendance — verify it persists (date format YYYY-MM-DD is valid for query)
   const attVerify = await api('GET', `/attendance/class/9?date=${today}`, null, CT_TOKEN);
-  check('Attendance persists after save', attVerify.status === 200, false);
+  check('Attendance persists after save', attVerify.status === 200);
 
-  // 1f. Teacher CANNOT access unrelated class (Class 12 not assigned)
+  // 1f. Teacher CANNOT access unrelated class (Class 12 not assigned) — must be strictly 403
   const attBlock = await api('GET', '/students/class/12', null, TEACHER_TOKEN);
-  check('Teacher blocked from unrelated Class 12', attBlock.status === 403 || attBlock.status === 200, false);
-  // Note: may return 200 with empty — check IDOR via student endpoint instead
+  check('Teacher blocked from unrelated Class 12 (strict 403)', attBlock.status === 403);
+  // 200 with empty data would be an information disclosure — we require a hard 403.
   const idor = await api('GET', `/students/${students9[0]?._id}`, null, TEACHER_TOKEN);
   check('Teacher can view student in own class',   idor.status === 200);
 
@@ -163,9 +163,9 @@ async function run() {
   const sDash = await api('GET', '/dashboard/student', null, STUDENT_TOKEN);
   check('Student dashboard loads', sDash.status === 200);
 
-  // 2b. Student timetable
+  // 2b. Student timetable — route must exist (200 or empty 200, never 404)
   const sTT = await api('GET', '/timetable/my-timetable', null, STUDENT_TOKEN);
-  check('Student timetable accessible', sTT.status === 200 || sTT.status === 404, false);
+  check('Student timetable endpoint reachable (not 404/500)', sTT.status === 200 || sTT.status === 204);
 
   // 2c. Student homework
   const sHW = await api('GET', '/homework/my-homework', null, STUDENT_TOKEN);
@@ -178,7 +178,7 @@ async function run() {
   const myStudentId = sProfile.data?.data?._id || sProfile.data?.data?.student?._id;
   
   const sAtt = await api('GET', `/attendance/student/${myStudentId}/summary`, null, STUDENT_TOKEN);
-  check('Student sees own attendance', sAtt.status === 200 || sAtt.status === 404, false);
+  check('Student sees own attendance (200)', sAtt.status === 200);
 
   // 2e. Student sees PUBLISHED marks only
   const sMarks = await api('GET', '/marks/my-marks', null, STUDENT_TOKEN);
@@ -200,16 +200,16 @@ async function run() {
     check('Student CANNOT access another student marks (IDOR)', idor2.status === 403 || idor2.status === 401);
   }
 
-  // 2g. Student profile (already fetched above for attendance — check result)
-  check('Student profile accessible (secondary check)', sProfile.status === 200 || sProfile.status === 404, false);
+  // 2g. Student profile (already fetched above — check result)
+  check('Student profile accessible (secondary check)', sProfile.status === 200);
 
-  // 2h. Fees (offline ledger)
+  // 2h. Fees (offline ledger — route must respond, empty is OK)
   const sFees = await api('GET', '/fees/my-fees', null, STUDENT_TOKEN);
-  check('Student fee ledger accessible', sFees.status === 200 || sFees.status === 404, false);
+  check('Student fee ledger accessible (200)', sFees.status === 200);
 
-  // 2i. Library
+  // 2i. Library (route must exist and respond)
   const sLib = await api('GET', '/library/my-books', null, STUDENT_TOKEN);
-  check('Student library accessible', sLib.status === 200 || sLib.status === 404, false);
+  check('Student library endpoint reachable (200)', sLib.status === 200);
 
   // ── 3. PRINCIPAL WORKFLOW ────────────────────────────────────
   console.log('\n── 3. PRINCIPAL WORKFLOW: Dashboard → Search → Analytics → Approvals ─');
@@ -227,9 +227,9 @@ async function run() {
   const sRes = search.data?.data?.students || search.data?.data || [];
   check('Search returns matching students', Array.isArray(sRes));
 
-  // 3c. Admissions list
+  // 3c. Admissions list — principal has admissions.view permission; must be 200
   const admList = await api('GET', '/admissions', null, PRINCIPAL_TOKEN);
-  check('Principal sees admissions list', admList.status === 200 || admList.status === 403, false);
+  check('Principal sees admissions list (200)', admList.status === 200);
 
   // 3d. Class list (academic overview)
   const classes = await api('GET', '/classes', null, PRINCIPAL_TOKEN);
@@ -242,8 +242,8 @@ async function run() {
   check('Principal sees all students', allStudents.status === 200);
 
   // 3f. Published marks accessible to principal
-  const allMarks = await api('GET', '/marks/class?class=9&examType=Unit+Test+1&academicYear=2026-2027', null, PRINCIPAL_TOKEN);
-  check('Principal can access class marks', allMarks.status === 200 || allMarks.status === 404, false);
+  const allMarks = await api('GET', '/marks/class/9?examType=Unit+Test+1&academicYear=2026-2027', null, PRINCIPAL_TOKEN);
+  check('Principal can access class marks (200)', allMarks.status === 200);
 
   // 3g. Notice creation
   const notice = await api('POST', '/notices', {
@@ -252,11 +252,11 @@ async function run() {
     type: 'General',
     isPublished: true,
   }, PRINCIPAL_TOKEN);
-  check('Principal publishes notice', notice.status === 201 || notice.status === 200 || notice.status === 403, false);
+  check('Principal publishes notice (201 or 200)', notice.status === 201 || notice.status === 200);
 
-  // 3h. Pending leave requests
+  // 3h. Pending leave requests — principal has leave.view via HR-delegated or needs explicit perm
   const leaves = await api('GET', '/leaves/pending', null, PRINCIPAL_TOKEN);
-  check('Principal sees pending leaves', leaves.status === 200 || leaves.status === 404, false);
+  check('Principal sees pending leaves (200)', leaves.status === 200);
 
   // ── 4. CORE DATA FLOW — same data across all portals ─────────
   console.log('\n── 4. DATA CONSISTENCY ACROSS PORTALS ─────────────────────────────');
@@ -290,7 +290,7 @@ async function run() {
   const parentChildren = await api('GET', '/parents/my-children', null, PARENT_TOKEN);
   check('Parent sees own children', parentChildren.status === 200);
   const children = parentChildren.data?.data?.children || parentChildren.data?.data || [];
-  check('Parent child is Arjun', Array.isArray(children) && children.length >= 1, false);
+  check('Parent child is Arjun', Array.isArray(children) && children.length >= 1);
 
   const accDash = await api('GET', '/dashboard/accountant', null, ACCOUNTANT_TOKEN);
   check('Accountant dashboard loads', accDash.status === 200);
@@ -318,15 +318,31 @@ async function run() {
     toClass: '10',
     academicYear: '2027-2028',
   }, ADMIN_TOKEN);
-  check('Promote endpoint responds', promoteCheck.status !== 404, false);
+  check('Promote endpoint responds (not 404)', promoteCheck.status !== 404);
 
-  // ── 7. TC WORKFLOW ────────────────────────────────────────────
+  // ── 7. TC (TRANSFER CERTIFICATE) WORKFLOW ───────────────────────────
   console.log('\n── 7. TC (TRANSFER CERTIFICATE) WORKFLOW ───────────────────────────');
 
-  const tcCheck = await api('POST', `/students/${arjunStudent._id}/tc`, {
+  // Create a dedicated student for the TC test to avoid mutating primary student Arjun
+  const tcStudentRes = await api('POST', '/students', {
+    name: 'TC Workflow Test Student',
+    email: `tc_test_${Date.now()}@staging.edu.in`,
+    password: 'TestStudent@123',
+    admissionNumber: `ADM-TC-${Date.now().toString().slice(-4)}`,
+    rollNumber: Math.floor(Math.random() * 800) + 100,
+    class: '9',
+    academicYear: '2026-2027',
+    gender: 'male',
+    dateOfBirth: '2012-01-01',
+    father: { name: 'Test Father', phone: '+91-9800000099' },
+    mother: { name: 'Test Mother', phone: '+91-9800000098' }
+  }, ADMIN_TOKEN);
+  const tcTargetId = tcStudentRes.data?.data?._id || tcStudentRes.data?.data?.student?._id;
+
+  const tcCheck = await api('POST', `/students/${tcTargetId}/tc`, {
     reason: 'UAT Test TC', tcDate: new Date().toISOString(),
   }, ADMIN_TOKEN);
-  check('TC endpoint responds', tcCheck.status !== 500, false);
+  check('TC endpoint responds (200)', tcCheck.status === 200);
 
   // ── 8. BACKUP/RESTORE VERIFICATION ───────────────────────────
   console.log('\n── 8. BACKUP READINESS ─────────────────────────────────────────────');

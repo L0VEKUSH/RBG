@@ -45,13 +45,23 @@ app.use(mongoSanitize());
 
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  max: 100
+  max: parseInt(process.env.RATE_LIMIT_MAX) || (process.env.NODE_ENV === 'test' ? 10000 : 500)
 });
 app.use('/api', limiter);
 
 // Static folder
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ── Health / readiness endpoint ──────────────────────────────────────────────
+// Returns 200 only when the DB connection is ready.
+app.get('/health', (req, res) => {
+  const dbState = mongoose.connection.readyState; // 0=disc,1=conn,2=connecting,3=disc-ing
+  if (dbState === 1) {
+    return res.status(200).json({ status: 'ok', db: 'connected' });
+  }
+  return res.status(503).json({ status: 'degraded', db: 'disconnected', dbState });
+});
 
 // Dynamic route loading
 const routesDir = path.join(__dirname, 'routes');
@@ -109,14 +119,31 @@ const server = app.listen(PORT, () => {
   console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
 });
 
-// Log unhandled rejections — do NOT crash the server
+// ── Graceful shutdown helper ─────────────────────────────────────────────────
+const gracefulShutdown = (reason, exitCode = 1) => {
+  console.error(`[Shutdown] ${reason} — stopping server gracefully`);
+  server.close(() => {
+    console.error('[Shutdown] HTTP server closed. Exiting.');
+    process.exit(exitCode);
+  });
+  // Force-exit after 10 s if server.close stalls (active connections).
+  setTimeout(() => {
+    console.error('[Shutdown] Forced exit after 10 s timeout.');
+    process.exit(exitCode);
+  }, 10_000).unref();
+};
+
+// Unhandled promise rejections: log and shut down — do NOT continue serving.
 process.on('unhandledRejection', (err) => {
   console.error(`[UnhandledRejection] ${err && err.message}`);
+  gracefulShutdown('Unhandled Promise Rejection');
 });
 
+// Uncaught exceptions: the process state is undefined — always shut down.
 process.on('uncaughtException', (err) => {
   console.error(`[UncaughtException] ${err && err.message}`);
   console.error(err && err.stack);
+  gracefulShutdown('Uncaught Exception');
 });
 
 module.exports = app;

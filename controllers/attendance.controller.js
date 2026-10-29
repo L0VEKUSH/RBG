@@ -21,8 +21,9 @@ exports.markAttendance = async (req, res) => {
  */
 exports.getClassAttendance = async (req, res) => {
   const { date } = req.query;
+  // Pass only (class, date) — no pageBlock parameter
   const records = await attendanceService.getClassAttendance(
-    req.params.class, req.params.pageBlock, date || new Date()
+    req.params.class, date || new Date()
   );
   res.status(200).json({ success: true, count: records.length, data: { records } });
 };

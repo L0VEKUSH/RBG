@@ -16,11 +16,12 @@ exports.addMarks = async (req, res) => {
   });
 
   if (existing) {
-    const marks = await Marks.findByIdAndUpdate(existing._id, {
-      ...req.body,
-      markedBy: req.user.id,
-    }, { new: true, runValidators: true }).populate('student');
-    return res.status(200).json({ success: true, message: 'Marks updated', data: { marks } });
+    existing.subjects = req.body.subjects;
+    existing.class = req.body.class;
+    existing.markedBy = req.user.id;
+    if (req.body.isPublished !== undefined) existing.isPublished = req.body.isPublished;
+    await existing.save();
+    return res.status(200).json({ success: true, message: 'Marks updated', data: { marks: existing } });
   }
 
   const marks = await Marks.create({ ...req.body, markedBy: req.user.id });

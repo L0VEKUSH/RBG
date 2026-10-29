@@ -1,5 +1,5 @@
 /**
- * STAGING SEED — Sunrise Public School ERP
+ * STAGING SEED — RBG School ERP
  * 
  * Creates clearly labelled DEMO/STAGING data in a SEPARATE database.
  * NEVER run against production database.
@@ -129,7 +129,14 @@ async function run() {
   const userMap = {};
   for (const acc of accounts) {
     const existing = await User.findOne({ email: acc.email });
-    if (existing) { userMap[acc.role + '_' + acc.email] = existing; continue; }
+    if (existing) {
+      if (!existing.isActive) {
+        existing.isActive = true;
+        await existing.save();
+      }
+      userMap[acc.role + '_' + acc.email] = existing;
+      continue;
+    }
     const user = await User.create({
       name:     acc.name,
       email:    acc.email,
@@ -217,11 +224,13 @@ async function run() {
         admissionNumber: sd.admNo,
         rollNumber:      sd.roll,
         class:           sd.class,
-        academicYear:    ay._id,
+        academicYear:    ay.name,
         dateOfBirth:     new Date(sd.dob),
         gender:          sd.gender,
         isActive:        true,
+        tcIssued:        false,
         father: { name: `Father of ${sd.name.split(' ')[0]}`, phone: '+91-9800000001' },
+        mother: { name: `Mother of ${sd.name.split(' ')[0]}`, phone: '+91-9800000002' },
       },
       { upsert: true, new: true }
     );
@@ -230,6 +239,7 @@ async function run() {
   }
 
   // ── 7. Parent ───────────────────────────────────────────────────
+  await Student.findByIdAndUpdate(studentMap['ADM-STG-001']._id, { parentUser: parentUser._id });
   await Parent.findOneAndUpdate(
     { user: parentUser._id },
     {

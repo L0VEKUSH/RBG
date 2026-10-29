@@ -123,11 +123,11 @@ router.post(
 
 // ── Protected routes ──────────────────────────────────────────────
 router.use(protect);
-router.get('/', requireRole('super_admin', 'school_admin', 'admission_officer'), getAdmissions);
-router.get('/stats', requireRole('super_admin', 'school_admin', 'admission_officer'), getAdmissionStats);
-router.get('/:id', requireRole('super_admin', 'school_admin', 'admission_officer'), getAdmission);
-router.put('/:id', requireRole('super_admin', 'school_admin', 'admission_officer'), updateAdmission);
-router.put('/:id/status', requireRole('super_admin', 'school_admin', 'admission_officer'), updateAdmissionStatus);
-router.post('/:id/admit', requireRole('super_admin', 'school_admin', 'admission_officer'), admitStudent);
+router.get('/', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), getAdmissions);
+router.get('/stats', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), getAdmissionStats);
+router.get('/:id', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), getAdmission);
+router.put('/:id', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), updateAdmission);
+router.put('/:id/status', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), updateAdmissionStatus);
+router.post('/:id/admit', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), admitStudent);
 
 module.exports = router;
