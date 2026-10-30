@@ -1,4 +1,4 @@
-# 🛡️ Sunrise Public School ERP: Production Hardening Report
+# 🛡️ RBG School ERP: Production Hardening Report
 
 This is the definitive summary of the Final Production Hardening Phase. The system was audited, concurrency issues were patched, and deployment realities were verified according to the 31-point directive.
 

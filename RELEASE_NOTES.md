@@ -1,4 +1,4 @@
-# RELEASE NOTES — Sunrise Public School ERP
+# RELEASE NOTES — RBG School ERP
 ## Version 1.0.0
 **Release Date:** September 2026  
 **Status:** Release Candidate — Ready for Staging Deployment and UAT
@@ -7,7 +7,7 @@
 
 ## Overview
 
-Sunrise Public School ERP is a complete, production-hardened K–12 school management system covering the full academic lifecycle from admission to TC issuance. The system is designed around three primary daily users — Teacher, Student, and Principal — with supporting roles for administration, finance, library, transport, and HR.
+RBG School ERP is a complete, production-hardened K–12 school management system covering the full academic lifecycle from admission to TC issuance. The system is designed around three primary daily users — Teacher, Student, and Principal — with supporting roles for administration, finance, library, transport, and HR.
 
 ---
 
@@ -158,7 +158,7 @@ MONGO_URI=mongodb+srv://.../<dbname>
 JWT_SECRET=<64-char minimum random string>
 CORS_ORIGIN=https://yourdomain.com
 PORT=5000
-SCHOOL_NAME=Sunrise Public School
+SCHOOL_NAME=RBG School
 SCHOOL_ADDRESS=<actual address>
 SCHOOL_PHONE=<actual phone>
 SCHOOL_EMAIL=<actual email>

@@ -1,4 +1,4 @@
-# 🏫 Sunrise Public School — College Management System
+# 🏫 RBG School — College Management System
 
 A professional, full-stack **School Management System** for Classes I–XII built with **Node.js**, **Express**, **MongoDB**, and a fully responsive **HTML/CSS/JS frontend dashboard**.
 
