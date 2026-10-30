@@ -81,8 +81,8 @@ window.filterUsers = function() {
     <td><span class="badge badge-info">${(u.role||'user').replace('_',' ')}</span></td>
     <td><span class="badge badge-success">Active</span></td>
     <td>
-      <button class="btn btn-secondary btn-sm"><i class="fas fa-edit"></i></button>
-      <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+      <button class="btn btn-secondary btn-sm" aria-label="Edit user ${u.name||u.email||''}"><i class="fas fa-edit"></i></button>
+      <button class="btn btn-danger btn-sm" aria-label="Delete user ${u.name||u.email||''}"><i class="fas fa-trash"></i></button>
     </td>
   </tr>`).join('');
   

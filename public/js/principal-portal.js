@@ -321,8 +321,8 @@ async function loadPendingLeaves() {
       <td><span class="badge badge-secondary">${l.leaveType||'Leave'}</span></td>
       <td class="csp-style-749cb1d3cf" title="${l.reason||''}">${l.reason||'—'}</td>
       <td>
-        <button class="btn btn-success btn-sm" ${cspActionAttrs("approveLeave", ['${l._id}'], "click", [], [])}><i class="fas fa-check"></i></button>
-        <button class="btn btn-danger btn-sm" ${cspActionAttrs("rejectLeave", ['${l._id}'], "click", [], [])}><i class="fas fa-times"></i></button>
+        <button class="btn btn-success btn-sm" aria-label="Approve leave request" ${cspActionAttrs("approveLeave", ['${l._id}'], "click", [], [])}><i class="fas fa-check"></i></button>
+        <button class="btn btn-danger btn-sm" aria-label="Reject leave request" ${cspActionAttrs("rejectLeave", ['${l._id}'], "click", [], [])}><i class="fas fa-times"></i></button>
       </td>
     </tr>`).join('');
   } catch(e) { 
@@ -333,8 +333,8 @@ async function loadPendingLeaves() {
         <td><span class="badge badge-secondary">Sick Leave</span></td>
         <td>Fever</td>
         <td>
-          <button class="btn btn-success btn-sm" ${cspActionAttrs("toastSuccess", ['Approved', ''], "click", [], [])}><i class="fas fa-check"></i></button>
-          <button class="btn btn-danger btn-sm" ${cspActionAttrs("toastSuccess", ['Rejected', ''], "click", [], [])}><i class="fas fa-times"></i></button>
+          <button class="btn btn-success btn-sm" aria-label="Approve leave request" ${cspActionAttrs("toastSuccess", ['Approved', ''], "click", [], [])}><i class="fas fa-check"></i></button>
+          <button class="btn btn-danger btn-sm" aria-label="Reject leave request" ${cspActionAttrs("toastSuccess", ['Rejected', ''], "click", [], [])}><i class="fas fa-times"></i></button>
         </td>
       </tr>`;
   }
@@ -353,7 +353,7 @@ async function loadPendingAdmissions() {
         <td>${a.prevSchool}</td>
         <td>
           <button class="btn btn-success btn-sm" ${cspActionAttrs("toastSuccess", ['Admitted', ''], "click", [], [])}><i class="fas fa-check"></i> Admit</button>
-          <button class="btn btn-danger btn-sm" ${cspActionAttrs("toastSuccess", ['Rejected', ''], "click", [], [])}><i class="fas fa-times"></i></button>
+          <button class="btn btn-danger btn-sm" aria-label="Reject admission for ${a.name}" ${cspActionAttrs("toastSuccess", ['Rejected', ''], "click", [], [])}><i class="fas fa-times"></i></button>
         </td>
     </tr>`).join('');
 }

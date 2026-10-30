@@ -1,0 +1,372 @@
+/* ══════════════════════════════════════════════════════════════
+   RBG SCHOOL — PRINT TEMPLATES STYLESHEET
+   Externalized to comply with strict Content Security Policy
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Common Print Controls & Helpers ────────────────────────── */
+.btn-print {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+}
+.btn-print-primary { background: #2980b9; width: 100px; }
+.btn-print-dark { background: #2c3e50; }
+.btn-print-blue { background: #007bff; width: 100px; }
+.btn-print-black { background: #333; width: 100px; }
+
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.font-bold { font-weight: bold; }
+.border-top-subtle { border-top: 1px solid #ccc; }
+.fs-14 { font-size: 14px; }
+.fs-18 { font-size: 18px; }
+.heading-report { margin: 15px 0 5px 0; font-size: 18px; }
+.mb-20 { margin-bottom: 20px; }
+
+/* ── Fee Receipt Styles ─────────────────────────────────────── */
+.fee-receipt-body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+.fee-receipt-page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: white;
+    padding: 20mm;
+    box-sizing: border-box;
+}
+.fee-receipt-header {
+    text-align: center;
+    border-bottom: 2px solid #2980b9;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.fee-receipt-header h1 {
+    margin: 0;
+    color: #2980b9;
+    font-size: 24px;
+    text-transform: uppercase;
+}
+.fee-receipt-header .school-info {
+    font-size: 14px;
+    margin-top: 5px;
+    color: #555;
+}
+.receipt-title {
+    text-align: center;
+    margin: 15px 0;
+    font-size: 20px;
+    font-weight: 600;
+    text-decoration: underline;
+}
+.receipt-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+.student-info-grid {
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+.receipt-table th, .receipt-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+    font-size: 14px;
+}
+.receipt-table th { background-color: #f4f6f7; }
+.receipt-totals { width: 50%; float: right; }
+.receipt-totals table { border: none; width: 100%; border-collapse: collapse; }
+.receipt-totals th, .receipt-totals td {
+    border: none;
+    padding: 5px 10px;
+    text-align: right;
+    font-size: 14px;
+}
+.receipt-totals th { text-align: left; }
+.clearfix::after { content: ""; clear: both; display: table; }
+.receipt-footer {
+    margin-top: 60px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+.signature-line {
+    border-top: 1px solid #333;
+    width: 150px;
+    text-align: center;
+    padding-top: 5px;
+}
+
+/* ── Student ID Card Styles ─────────────────────────────────── */
+.id-card-body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f0f2f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.id-card { 
+    width: 2.125in; 
+    height: 3.375in; 
+    background: #fff; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    overflow: hidden; 
+    position: relative; 
+    display: flex; 
+    flex-direction: column; 
+    border: 1px solid #ccc;
+}
+.id-header { 
+    background: #e74c3c; 
+    color: white; 
+    text-align: center; 
+    padding: 10px 5px; 
+    font-size: 11px; 
+    font-weight: 700; 
+    line-height: 1.2;
+}
+.id-photo-container { 
+    text-align: center; 
+    margin-top: 10px; 
+}
+.id-photo { 
+    width: 70px; 
+    height: 85px; 
+    background: #eee; 
+    border: 2px solid #e74c3c; 
+    border-radius: 5px; 
+    display: inline-block; 
+    object-fit: cover;
+}
+.id-body { 
+    padding: 10px; 
+    text-align: center; 
+    flex: 1;
+}
+.id-name { 
+    font-size: 14px; 
+    font-weight: 700; 
+    color: #333; 
+    margin: 5px 0 2px 0; 
+}
+.id-role { 
+    font-size: 10px; 
+    color: #777; 
+    margin-bottom: 10px; 
+    text-transform: uppercase; 
+    letter-spacing: 1px;
+}
+.id-details { 
+    font-size: 9px; 
+    text-align: left; 
+    color: #444; 
+    line-height: 1.5; 
+    margin: 0 auto; 
+    width: 85%;
+}
+.id-footer { 
+    background: #2c3e50; 
+    color: white; 
+    text-align: center; 
+    padding: 8px 5px; 
+    font-size: 8px; 
+}
+
+/* ── Report Card Styles ─────────────────────────────────────── */
+.report-card-body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+.report-card-page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: white;
+    padding: 20mm;
+    box-sizing: border-box;
+}
+.report-card-header {
+    text-align: center;
+    border-bottom: 2px solid #2c3e50;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.report-card-header h1 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 24px;
+    text-transform: uppercase;
+}
+.report-card-header .school-info {
+    font-size: 14px;
+    margin-top: 5px;
+}
+.report-student-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+.report-student-info div { flex: 1; }
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+.report-table th, .report-table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+    font-size: 14px;
+}
+.report-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+.report-footer {
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+/* ── Transfer Certificate Styles ────────────────────────────── */
+.tc-body {
+    font-family: 'Inter', serif;
+    margin: 0;
+    padding: 20px;
+    color: #111;
+}
+.tc-page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: white;
+    padding: 20mm;
+    box-sizing: border-box;
+    position: relative;
+    border: 5px double #333;
+}
+.tc-header {
+    text-align: center;
+    border-bottom: 2px solid #333;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+.tc-header h1 {
+    margin: 0;
+    color: #111;
+    font-size: 28px;
+    text-transform: uppercase;
+    font-family: 'Times New Roman', Times, serif;
+}
+.tc-header .school-info {
+    font-size: 14px;
+    margin-top: 5px;
+}
+.tc-title {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 24px;
+    font-weight: 700;
+    text-decoration: underline;
+    letter-spacing: 2px;
+}
+.tc-row-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+.tc-content-list {
+    list-style: none;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1.8;
+}
+.tc-content-list li {
+    margin-bottom: 10px;
+    display: flex;
+}
+.tc-content-list li .label {
+    width: 45%;
+    font-weight: 600;
+}
+.tc-content-list li .value {
+    width: 55%;
+    border-bottom: 1px dashed #666;
+    padding-left: 10px;
+}
+.tc-footer {
+    margin-top: 80px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+}
+.tc-signature {
+    border-top: 1px solid #111;
+    width: 180px;
+    text-align: center;
+    padding-top: 5px;
+}
+
+/* ── Print Media Queries ────────────────────────────────────── */
+@media print {
+    body {
+        padding: 0 !important;
+        background: none !important;
+    }
+    .fee-receipt-page, .report-card-page {
+        margin: 0 !important;
+        width: 100% !important;
+        min-height: 100% !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+    .tc-page {
+        margin: 0 !important;
+        width: 100% !important;
+        min-height: 100% !important;
+        padding: 10mm !important;
+        border: 5px double #333 !important;
+    }
+    .id-card-body {
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
+    }
+    .id-card {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        page-break-inside: avoid !important;
+        margin-bottom: 10px !important;
+    }
+    .no-print {
+        display: none !important;
+    }
+}

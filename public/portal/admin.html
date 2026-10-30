@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Portal — Sunrise Public School</title>
+  <title>Admin Portal — RBG School</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -16,7 +16,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <i class="fas fa-shield-alt"></i>
-      <div><h2>Sunrise Public School</h2><small>System Admin</small></div>
+      <div><h2>RBG School</h2><small>System Admin</small></div>
     </div>
     <div class="sidebar-user">
       <div class="sidebar-avatar" id="sidebarAvatar">A</div>
@@ -32,14 +32,14 @@
   </aside>
 
   <header class="topbar" id="topbar">
-    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <button class="topbar-hamburger" aria-label="Toggle sidebar navigation" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
     <span class="topbar-breadcrumb" id="breadcrumb">System Dashboard</span>
     <div class="topbar-search">
       <i class="fas fa-search"></i>
-      <input type="text" id="globalSearch" placeholder="Search users, settings..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+      <input type="text" id="globalSearch" placeholder="Search users, settings..." aria-label="Search users and settings" data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
     </div>
     <div class="topbar-actions">
-      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+      <button class="topbar-btn" aria-label="Toggle dark mode" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
         <i class="fas fa-moon" id="themeIcon"></i>
       </button>
       <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
@@ -98,8 +98,8 @@
           <button class="btn btn-primary" data-csp-action-click="openModal" data-csp-args-click="%5B%22addUserModal%22%5D"><i class="fas fa-plus"></i> Add User</button>
         </div>
         <div class="filter-bar">
-          <input type="text" class="filter-input" id="userSearch" placeholder="Search by name, email, or role..." data-csp-action-input="filterUsers" data-csp-args-input="%5B%5D">
-          <select class="filter-select" id="userRoleFilter" data-csp-action-change="filterUsers" data-csp-args-change="%5B%5D">
+          <input type="text" class="filter-input" id="userSearch" placeholder="Search by name, email, or role..." aria-label="Search users by name, email, or role" data-csp-action-input="filterUsers" data-csp-args-input="%5B%5D">
+          <select class="filter-select" id="userRoleFilter" aria-label="Filter users by role" data-csp-action-change="filterUsers" data-csp-args-change="%5B%5D">
             <option value="">All Roles</option>
             <option value="super_admin">Super Admin</option>
             <option value="principal">Principal</option>
@@ -127,8 +127,8 @@
           <h2><i class="fas fa-history"></i> System Audit Logs</h2>
         </div>
         <div class="filter-bar">
-          <select class="filter-select" id="auditActionFilter" data-csp-action-change="loadAuditLogs" data-csp-args-change="%5B%5D"><option value="">All Actions</option><option value="LOGIN">Login</option><option value="UPDATE">Update</option><option value="DELETE">Delete</option></select>
-          <input type="date" class="filter-input" id="auditDateFilter" data-csp-action-change="loadAuditLogs" data-csp-args-change="%5B%5D">
+          <select class="filter-select" id="auditActionFilter" aria-label="Filter audit logs by action" data-csp-action-change="loadAuditLogs" data-csp-args-change="%5B%5D"><option value="">All Actions</option><option value="LOGIN">Login</option><option value="UPDATE">Update</option><option value="DELETE">Delete</option></select>
+          <input type="date" class="filter-input" id="auditDateFilter" aria-label="Filter audit logs by date" data-csp-action-change="loadAuditLogs" data-csp-args-change="%5B%5D">
         </div>
         <div class="card">
           <div class="table-wrapper">
@@ -151,16 +151,16 @@
           <div class="card">
             <div class="card-header"><h3>General Information</h3></div>
             <div class="card-body">
-              <div class="form-group"><label>School Name</label><input type="text" class="form-control" id="setSchoolName" value="Sunrise Public School"></div>
-              <div class="form-group"><label>Contact Email</label><input type="email" class="form-control" id="setContactEmail" value="contact@sunriseschool.edu.in"></div>
-              <div class="form-group"><label>Address</label><textarea class="form-control" id="setAddress" rows="3"></textarea></div>
+              <div class="form-group"><label for="setSchoolName">School Name</label><input type="text" class="form-control" id="setSchoolName" value="RBG School"></div>
+              <div class="form-group"><label for="setContactEmail">Contact Email</label><input type="email" class="form-control" id="setContactEmail" autocomplete="email" value="contact@sunriseschool.edu.in"></div>
+              <div class="form-group"><label for="setAddress">Address</label><textarea class="form-control" id="setAddress" rows="3"></textarea></div>
             </div>
           </div>
           <div class="card">
             <div class="card-header"><h3>Academic Parameters</h3></div>
             <div class="card-body">
-              <div class="form-group"><label>Current Academic Year</label><select class="form-control" id="setAcadYear"><option>2023-2024</option><option selected>2024-2025</option></select></div>
-              <div class="form-group"><label>Timezone</label><input type="text" class="form-control" id="setTimezone" value="Asia/Kolkata"></div>
+              <div class="form-group"><label for="setAcadYear">Current Academic Year</label><select class="form-control" id="setAcadYear"><option>2023-2024</option><option selected>2024-2025</option></select></div>
+              <div class="form-group"><label for="setTimezone">Timezone</label><input type="text" class="form-control" id="setTimezone" value="Asia/Kolkata"></div>
               <div class="csp-style-5a74ede350">
                 <label class="csp-style-2c4907b32a"><input type="checkbox" checked> Enable Parent Portal Access</label>
                 <label class="csp-style-846a60ae35"><input type="checkbox" checked> Maintenance Mode</label>

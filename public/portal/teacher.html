@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teacher Portal — Sunrise Public School</title>
+  <title>Teacher Portal — RBG School</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -17,7 +17,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <i class="fas fa-chalkboard-teacher"></i>
-      <div><h2>Sunrise Public School</h2><small>Teacher Portal</small></div>
+      <div><h2>RBG School</h2><small>Teacher Portal</small></div>
     </div>
     <div class="sidebar-user">
       <div class="sidebar-avatar" id="sidebarAvatar">T</div>
@@ -33,17 +33,17 @@
   </aside>
 
   <header class="topbar" id="topbar">
-    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <button class="topbar-hamburger" aria-label="Toggle sidebar navigation" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
     <span class="topbar-breadcrumb" id="breadcrumb">Today</span>
     <div class="topbar-search">
       <i class="fas fa-search"></i>
-      <input type="text" id="globalSearch" placeholder="Search students..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+      <input type="text" id="globalSearch" placeholder="Search students..." aria-label="Search students" data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
     </div>
     <div class="topbar-actions">
-      <button class="topbar-btn" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notices%22%5D" title="Notices">
+      <button class="topbar-btn" aria-label="Notices" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notices%22%5D" title="Notices">
         <i class="fas fa-bell"></i><span class="notif-dot csp-style-6aa34d7432" id="notifDot" ></span>
       </button>
-      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+      <button class="topbar-btn" aria-label="Toggle dark mode" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
         <i class="fas fa-moon" id="themeIcon"></i>
       </button>
       <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
@@ -130,8 +130,8 @@
         </div>
         
         <div class="filter-bar csp-style-07d1b1c536" >
-          <div class="form-group csp-style-0adf663f4a" ><label>Class</label><select class="form-control" id="attClassSel" data-csp-action-change="loadClassRosterForAttendance" data-csp-args-change="%5B%5D"></select></div>
-          <div class="form-group csp-style-0adf663f4a" ><label>Date</label><input type="date" class="form-control" id="attDateSel" data-csp-action-change="loadClassRosterForAttendance" data-csp-args-change="%5B%5D"></div>
+          <div class="form-group csp-style-0adf663f4a" ><label for="attClassSel">Class</label><select class="form-control" id="attClassSel" data-csp-action-change="loadClassRosterForAttendance" data-csp-args-change="%5B%5D"></select></div>
+          <div class="form-group csp-style-0adf663f4a" ><label for="attDateSel">Date</label><input type="date" class="form-control" id="attDateSel" data-csp-action-change="loadClassRosterForAttendance" data-csp-args-change="%5B%5D"></div>
           <button class="btn btn-secondary csp-style-39eadb9054"  data-csp-action-click="loadClassRosterForAttendance" data-csp-args-click="%5B%5D"><i class="fas fa-sync"></i> Load</button>
         </div>
 
@@ -168,7 +168,7 @@
           <button class="btn btn-primary" data-csp-action-click="openModal" data-csp-args-click="%5B%22addHomeworkModal%22%5D"><i class="fas fa-plus"></i> Assign New</button>
         </div>
         <div class="filter-bar">
-          <select class="filter-select" id="hwClassFilter" data-csp-action-change="filterTeacherHomework" data-csp-args-change="%5B%5D"><option value="">All Classes</option></select>
+          <select class="filter-select" id="hwClassFilter" aria-label="Filter homework by class" data-csp-action-change="filterTeacherHomework" data-csp-args-change="%5B%5D"><option value="">All Classes</option></select>
         </div>
         <div id="teacherHomeworkList" class="csp-style-2b8334d34f"><div class="spinner"></div></div>
       </div>
@@ -181,12 +181,12 @@
         </div>
         
         <div class="filter-bar csp-style-73347482d1" >
-          <select class="form-control csp-style-5e96948257" id="marksClass"  data-csp-action-change="updateMarksSubjectList" data-csp-args-change="%5B%5D"><option value="">Class</option></select>
-          <select class="form-control csp-style-2a551eb8eb" id="marksSubject" ><option value="">Subject</option></select>
-          <select class="form-control csp-style-2a551eb8eb" id="marksExam" >
+          <select class="form-control csp-style-5e96948257" id="marksClass" aria-label="Select class for marks entry" data-csp-action-change="updateMarksSubjectList" data-csp-args-change="%5B%5D"><option value="">Class</option></select>
+          <select class="form-control csp-style-2a551eb8eb" id="marksSubject" aria-label="Select subject for marks entry"><option value="">Subject</option></select>
+          <select class="form-control csp-style-2a551eb8eb" id="marksExam" aria-label="Select exam for marks entry">
             <option value="">Exam Type</option><option>Unit Test 1</option><option>Unit Test 2</option><option>Half Yearly</option><option>Annual</option>
           </select>
-          <input type="number" class="form-control csp-style-ebb13c75de" id="marksMax" placeholder="Max Marks"  value="100" data-csp-action-change="recalculateAllGrades" data-csp-args-change="%5B%5D">
+          <input type="number" class="form-control csp-style-ebb13c75de" id="marksMax" placeholder="Max Marks" aria-label="Maximum marks" value="100" data-csp-action-change="recalculateAllGrades" data-csp-args-change="%5B%5D">
           <button class="btn btn-secondary" data-csp-action-click="loadStudentsForMarks" data-csp-args-click="%5B%5D"><i class="fas fa-table"></i> Load Sheet</button>
         </div>
 
@@ -203,7 +203,7 @@
       <!-- ── ROSTER (My Students) ── -->
       <div class="page-section" id="panel-roster">
         <div class="section-header"><h2><i class="fas fa-users csp-style-3c61c26578" ></i> Students List</h2></div>
-        <div class="filter-bar"><select class="filter-select" id="rosterClassSel" data-csp-action-change="loadRoster" data-csp-args-change="%5B%5D"></select></div>
+        <div class="filter-bar"><select class="filter-select" id="rosterClassSel" aria-label="Filter roster by class" data-csp-action-change="loadRoster" data-csp-args-change="%5B%5D"></select></div>
         <div id="rosterGrid" class="csp-style-61cf4c713c"><div class="spinner"></div></div>
       </div>
       
@@ -229,15 +229,15 @@
   <!-- Add Homework Modal -->
   <div class="modal-overlay" id="addHomeworkModal">
     <div class="modal">
-      <div class="modal-header"><h3><i class="fas fa-book"></i> Assign Homework</h3><button class="modal-close" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addHomeworkModal%22%5D"><i class="fas fa-times"></i></button></div>
+      <div class="modal-header"><h3><i class="fas fa-book"></i> Assign Homework</h3><button class="modal-close" aria-label="Close assign homework modal" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addHomeworkModal%22%5D"><i class="fas fa-times"></i></button></div>
       <div class="modal-body">
-        <div class="form-group"><label>Title <span class="required">*</span></label><input class="form-control" id="newHwTitle"></div>
+        <div class="form-group"><label for="newHwTitle">Title <span class="required">*</span></label><input class="form-control" id="newHwTitle"></div>
         <div class="form-grid csp-style-9430410d62" >
-          <div class="form-group"><label>Class <span class="required">*</span></label><select class="form-control" id="newHwClass"></select></div>
-          <div class="form-group"><label>Subject <span class="required">*</span></label><input class="form-control" id="newHwSubject"></div>
+          <div class="form-group"><label for="newHwClass">Class <span class="required">*</span></label><select class="form-control" id="newHwClass"></select></div>
+          <div class="form-group"><label for="newHwSubject">Subject <span class="required">*</span></label><input class="form-control" id="newHwSubject"></div>
         </div>
-        <div class="form-group"><label>Due Date <span class="required">*</span></label><input type="date" class="form-control" id="newHwDate"></div>
-        <div class="form-group"><label>Description</label><textarea class="form-control" id="newHwDesc" rows="3"></textarea></div>
+        <div class="form-group"><label for="newHwDate">Due Date <span class="required">*</span></label><input type="date" class="form-control" id="newHwDate"></div>
+        <div class="form-group"><label for="newHwDesc">Description</label><textarea class="form-control" id="newHwDesc" rows="3"></textarea></div>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addHomeworkModal%22%5D">Cancel</button><button class="btn btn-primary" data-csp-action-click="submitNewHomework" data-csp-args-click="%5B%5D"><i class="fas fa-save"></i> Assign</button></div>
     </div>

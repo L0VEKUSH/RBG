@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Portal — Sunrise Public School</title>
+  <title>Student Portal — RBG School</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -17,7 +17,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <i class="fas fa-graduation-cap"></i>
-      <div><h2>Sunrise Public School</h2><small>Student Portal</small></div>
+      <div><h2>RBG School</h2><small>Student Portal</small></div>
     </div>
     <div class="sidebar-user">
       <div class="sidebar-avatar" id="sidebarAvatar">S</div>
@@ -33,14 +33,14 @@
   </aside>
 
   <header class="topbar" id="topbar">
-    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <button class="topbar-hamburger" aria-label="Toggle sidebar navigation" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
     <span class="topbar-breadcrumb" id="breadcrumb">Dashboard</span>
     <div class="topbar-search">
       <i class="fas fa-search"></i>
-      <input type="text" id="globalSearch" placeholder="Search..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+      <input type="text" id="globalSearch" placeholder="Search..." aria-label="Search portal" data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
     </div>
     <div class="topbar-actions">
-      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+      <button class="topbar-btn" aria-label="Toggle dark mode" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
         <i class="fas fa-moon" id="themeIcon"></i>
       </button>
       <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
@@ -108,8 +108,8 @@
           <h2><i class="fas fa-book csp-style-c6561e9481" ></i> Homework</h2>
         </div>
         <div class="filter-bar">
-          <select class="filter-select" id="hwSubjectFilter" data-csp-action-change="filterHomework" data-csp-args-change="%5B%5D"><option value="">All Subjects</option></select>
-          <select class="filter-select" id="hwStatusFilter" data-csp-action-change="filterHomework" data-csp-args-change="%5B%5D">
+          <select class="filter-select" id="hwSubjectFilter" aria-label="Filter homework by subject" data-csp-action-change="filterHomework" data-csp-args-change="%5B%5D"><option value="">All Subjects</option></select>
+          <select class="filter-select" id="hwStatusFilter" aria-label="Filter homework by status" data-csp-action-change="filterHomework" data-csp-args-change="%5B%5D">
             <option value="">All Status</option>
             <option value="pending">Pending</option>
             <option value="submitted">Submitted</option>
@@ -134,7 +134,7 @@
         <div class="section-header">
           <h2><i class="fas fa-calendar-check csp-style-c6561e9481" ></i> Attendance</h2>
           <div class="actions">
-            <select class="filter-select" id="attMonthSel" data-csp-action-change="loadMyAttendance" data-csp-args-change="%5B%5D"></select>
+            <select class="filter-select" id="attMonthSel" aria-label="Filter attendance by month" data-csp-action-change="loadMyAttendance" data-csp-args-change="%5B%5D"></select>
           </div>
         </div>
         <div class="stats-main csp-style-e7e3e005bf" >
@@ -181,7 +181,7 @@
           <i class="fas fa-university csp-style-d530187e19" ></i>
           <h3 class="csp-style-c6fa01b3f1">Offline Ledger Only</h3>
           <p class="csp-style-7f7dfd408c">
-            Sunrise Public School uses an offline fee collection system. This section displays your fee ledger for reference only. 
+            RBG School uses an offline fee collection system. This section displays your fee ledger for reference only. 
             <strong>All payments must be made at the school's fee counter via Cash or Demand Draft.</strong>
           </p>
         </div>

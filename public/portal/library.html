@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Library Portal — Sunrise Public School</title>
+  <title>Library Portal — RBG School</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -16,7 +16,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <i class="fas fa-book-reader"></i>
-      <div><h2>Sunrise Public School</h2><small>Library Portal</small></div>
+      <div><h2>RBG School</h2><small>Library Portal</small></div>
     </div>
     <div class="sidebar-user">
       <div class="sidebar-avatar" id="sidebarAvatar">L</div>
@@ -32,17 +32,17 @@
   </aside>
 
   <header class="topbar" id="topbar">
-    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <button class="topbar-hamburger" aria-label="Toggle sidebar navigation" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
     <span class="topbar-breadcrumb" id="breadcrumb">Library Dashboard</span>
     <div class="topbar-search">
       <i class="fas fa-search"></i>
-      <input type="text" id="globalSearch" placeholder="Search books, ISBN..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+      <input type="text" id="globalSearch" placeholder="Search books, ISBN..." aria-label="Search books or ISBN" data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
     </div>
     <div class="topbar-actions">
-      <button class="topbar-btn" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notifications%22%5D" title="Alerts">
+      <button class="topbar-btn" aria-label="Alerts" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notifications%22%5D" title="Alerts">
         <i class="fas fa-bell"></i><span class="notif-dot csp-style-6aa34d7432" id="notifDot" ></span>
       </button>
-      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+      <button class="topbar-btn" aria-label="Toggle dark mode" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
         <i class="fas fa-moon" id="themeIcon"></i>
       </button>
       <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
@@ -100,14 +100,14 @@
               <div class="csp-style-364d04928c">
                 <h4 class="csp-style-7b80e59e07">1. Select Member</h4>
                 <div class="form-grid csp-style-26f6376c0b" >
-                  <div class="form-group"><label>Role</label><select class="form-control" id="issueRole"><option value="student">Student</option><option value="teacher">Teacher</option></select></div>
-                  <div class="form-group"><label>Member ID (Adm No. or Emp ID)</label><input type="text" class="form-control" id="issueMemberId" placeholder="e.g. ADM101"></div>
+                  <div class="form-group"><label for="issueRole">Role</label><select class="form-control" id="issueRole"><option value="student">Student</option><option value="teacher">Teacher</option></select></div>
+                  <div class="form-group"><label for="issueMemberId">Member ID (Adm No. or Emp ID)</label><input type="text" class="form-control" id="issueMemberId" placeholder="e.g. ADM101"></div>
                 </div>
               </div>
               <div class="csp-style-364d04928c">
                 <h4 class="csp-style-7b80e59e07">2. Select Book</h4>
-                <div class="form-group"><label>Book ID / ISBN</label><input type="text" class="form-control" id="issueBookId" placeholder="Scan or enter Book ID"></div>
-                <div class="form-group"><label>Expected Return Date</label><input type="date" class="form-control" id="issueDueDate"></div>
+                <div class="form-group"><label for="issueBookId">Book ID / ISBN</label><input type="text" class="form-control" id="issueBookId" placeholder="Scan or enter Book ID"></div>
+                <div class="form-group"><label for="issueDueDate">Expected Return Date</label><input type="date" class="form-control" id="issueDueDate"></div>
               </div>
               <button class="btn btn-primary btn-lg" id="btnIssueSubmit" data-csp-action-click="submitIssue" data-csp-args-click="%5B%5D"><i class="fas fa-check-circle"></i> Confirm Issue</button>
             </div>
@@ -123,7 +123,7 @@
         <div class="card csp-style-823ab81c89" >
           <div class="card-body">
             <div class="form-grid csp-style-0b063c01b6" >
-              <div class="form-group csp-style-ab79ea2b85" ><label>Enter Book ID</label><input type="text" class="form-control" id="retBookId" placeholder="Scan or type ID"></div>
+              <div class="form-group csp-style-ab79ea2b85" ><label for="retBookId">Enter Book ID</label><input type="text" class="form-control" id="retBookId" placeholder="Scan or type ID"></div>
               <button class="btn btn-primary" data-csp-action-click="lookupReturn" data-csp-args-click="%5B%5D"><i class="fas fa-search"></i> Find Record</button>
             </div>
             
@@ -133,7 +133,7 @@
                 <div class="stat-card"><div class="stat-content"><div class="stat-label">Issued To</div><div class="stat-value csp-style-bdfe08e900" id="retMemberName" >Name</div></div></div>
               </div>
               <div class="form-group">
-                <label>Book Condition</label>
+                <label for="retCondition">Book Condition</label>
                 <select class="form-control" id="retCondition"><option>Good</option><option>Damaged</option><option>Lost</option></select>
               </div>
               <button class="btn btn-success" id="btnProcessReturn" data-csp-action-click="processReturn" data-csp-args-click="%5B%5D"><i class="fas fa-check"></i> Process Return</button>
@@ -149,8 +149,8 @@
           <button class="btn btn-primary" data-csp-action-click="openModal" data-csp-args-click="%5B%22addBookModal%22%5D"><i class="fas fa-plus"></i> Add Book</button>
         </div>
         <div class="filter-bar">
-          <input type="text" class="filter-input" id="catSearch" placeholder="Search title, author, ISBN..." data-csp-action-input="filterCatalog" data-csp-args-input="%5B%5D">
-          <select class="filter-select" id="catCategory" data-csp-action-change="filterCatalog" data-csp-args-change="%5B%5D"><option value="">All Categories</option><option>Fiction</option><option>Science</option><option>History</option><option>Mathematics</option></select>
+          <input type="text" class="filter-input" id="catSearch" placeholder="Search title, author, ISBN..." aria-label="Search catalog by title, author, or ISBN" data-csp-action-input="filterCatalog" data-csp-args-input="%5B%5D">
+          <select class="filter-select" id="catCategory" aria-label="Filter catalog by category" data-csp-action-change="filterCatalog" data-csp-args-change="%5B%5D"><option value="">All Categories</option><option>Fiction</option><option>Science</option><option>History</option><option>Mathematics</option></select>
         </div>
         <div class="card">
           <div class="table-wrapper">
@@ -170,16 +170,16 @@
   <!-- Add Book Modal -->
   <div class="modal-overlay" id="addBookModal">
     <div class="modal">
-      <div class="modal-header"><h3><i class="fas fa-plus-circle"></i> Add New Book</h3><button class="modal-close" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addBookModal%22%5D"><i class="fas fa-times"></i></button></div>
+      <div class="modal-header"><h3><i class="fas fa-plus-circle"></i> Add New Book</h3><button class="modal-close" aria-label="Close add book modal" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addBookModal%22%5D"><i class="fas fa-times"></i></button></div>
       <div class="modal-body">
-        <div class="form-group"><label>Title <span class="required">*</span></label><input class="form-control" id="newBkTitle"></div>
+        <div class="form-group"><label for="newBkTitle">Title <span class="required">*</span></label><input class="form-control" id="newBkTitle"></div>
         <div class="form-grid csp-style-9430410d62" >
-          <div class="form-group"><label>Author</label><input class="form-control" id="newBkAuthor"></div>
-          <div class="form-group"><label>ISBN</label><input class="form-control" id="newBkIsbn"></div>
+          <div class="form-group"><label for="newBkAuthor">Author</label><input class="form-control" id="newBkAuthor"></div>
+          <div class="form-group"><label for="newBkIsbn">ISBN</label><input class="form-control" id="newBkIsbn"></div>
         </div>
         <div class="form-grid csp-style-9430410d62" >
-          <div class="form-group"><label>Category</label><input class="form-control" id="newBkCat" placeholder="e.g. Science"></div>
-          <div class="form-group"><label>Total Copies <span class="required">*</span></label><input type="number" class="form-control" id="newBkQty" value="1"></div>
+          <div class="form-group"><label for="newBkCat">Category</label><input class="form-control" id="newBkCat" placeholder="e.g. Science"></div>
+          <div class="form-group"><label for="newBkQty">Total Copies <span class="required">*</span></label><input type="number" class="form-control" id="newBkQty" value="1"></div>
         </div>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addBookModal%22%5D">Cancel</button><button class="btn btn-primary" data-csp-action-click="submitNewBook" data-csp-args-click="%5B%5D"><i class="fas fa-save"></i> Save Book</button></div>

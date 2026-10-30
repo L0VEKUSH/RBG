@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Finance Portal — Sunrise Public School</title>
+  <title>Finance Portal — RBG School</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -16,7 +16,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <i class="fas fa-file-invoice-dollar"></i>
-      <div><h2>Sunrise Public School</h2><small>Finance Portal</small></div>
+      <div><h2>RBG School</h2><small>Finance Portal</small></div>
     </div>
     <div class="sidebar-user">
       <div class="sidebar-avatar" id="sidebarAvatar">F</div>
@@ -32,17 +32,17 @@
   </aside>
 
   <header class="topbar" id="topbar">
-    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <button class="topbar-hamburger" aria-label="Toggle sidebar navigation" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
     <span class="topbar-breadcrumb" id="breadcrumb">Financial Overview</span>
     <div class="topbar-search">
       <i class="fas fa-search"></i>
-      <input type="text" id="globalSearch" placeholder="Search receipt, student ID..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+      <input type="text" id="globalSearch" placeholder="Search receipt, student ID..." aria-label="Search receipt or student ID" data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
     </div>
     <div class="topbar-actions">
-      <button class="topbar-btn" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notifications%22%5D" title="Alerts">
+      <button class="topbar-btn" aria-label="Alerts" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notifications%22%5D" title="Alerts">
         <i class="fas fa-bell"></i><span class="notif-dot csp-style-6aa34d7432" id="notifDot" ></span>
       </button>
-      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+      <button class="topbar-btn" aria-label="Toggle dark mode" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
         <i class="fas fa-moon" id="themeIcon"></i>
       </button>
       <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
@@ -97,9 +97,9 @@
         
         <div class="card csp-style-155e37ed9b" >
           <div class="card-body csp-style-d566f414ff" >
-            <div class="form-group csp-style-0adf663f4a" ><label>Student ID / Adm No.</label><input type="text" class="form-control" id="collSearchId" placeholder="e.g. ADM2023001"></div>
-            <div class="form-group csp-style-0adf663f4a" ><label>Or Select Class</label><select class="form-control" id="collSearchClass" data-csp-action-change="loadStudentsForCollection" data-csp-args-change="%5B%5D"><option value="">Class</option></select></div>
-            <div class="form-group csp-style-bba717edaa" ><label>Select Student</label><select class="form-control" id="collSearchStudent"><option value="">Student</option></select></div>
+            <div class="form-group csp-style-0adf663f4a" ><label for="collSearchId">Student ID / Adm No.</label><input type="text" class="form-control" id="collSearchId" placeholder="e.g. ADM2023001"></div>
+            <div class="form-group csp-style-0adf663f4a" ><label for="collSearchClass">Or Select Class</label><select class="form-control" id="collSearchClass" data-csp-action-change="loadStudentsForCollection" data-csp-args-change="%5B%5D"><option value="">Class</option></select></div>
+            <div class="form-group csp-style-bba717edaa" ><label for="collSearchStudent">Select Student</label><select class="form-control" id="collSearchStudent"><option value="">Student</option></select></div>
             <button class="btn btn-primary" data-csp-action-click="lookupStudentFee" data-csp-args-click="%5B%5D"><i class="fas fa-search"></i> Lookup</button>
           </div>
         </div>
@@ -120,9 +120,9 @@
               <div class="csp-style-364d04928c">
                 <h4 class="csp-style-7b80e59e07">Record Payment</h4>
                 <div class="form-grid">
-                  <div class="form-group"><label>Amount to Pay (₹) <span class="required">*</span></label><input type="number" class="form-control" id="fcAmount" placeholder="Amount"></div>
-                  <div class="form-group"><label>Payment Method <span class="required">*</span></label><select class="form-control" id="fcMethod"><option>Cash</option><option>Card</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select></div>
-                  <div class="form-group csp-style-51377a917e" ><label>Remarks (Optional)</label><input type="text" class="form-control" id="fcRemarks" placeholder="Reference number or note"></div>
+                  <div class="form-group"><label for="fcAmount">Amount to Pay (₹) <span class="required">*</span></label><input type="number" class="form-control" id="fcAmount" placeholder="Amount"></div>
+                  <div class="form-group"><label for="fcMethod">Payment Method <span class="required">*</span></label><select class="form-control" id="fcMethod"><option>Cash</option><option>Card</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select></div>
+                  <div class="form-group csp-style-51377a917e" ><label for="fcRemarks">Remarks (Optional)</label><input type="text" class="form-control" id="fcRemarks" placeholder="Reference number or note"></div>
                 </div>
                 <button class="btn btn-primary" id="btnProcessPayment" data-csp-action-click="processPayment" data-csp-args-click="%5B%5D"><i class="fas fa-check-circle"></i> Process Payment</button>
               </div>
@@ -138,7 +138,7 @@
           <button class="btn btn-secondary"><i class="fas fa-bell"></i> Send Reminders</button>
         </div>
         <div class="filter-bar">
-          <select class="filter-select" id="defaulterClassFilter" data-csp-action-change="loadDefaulters" data-csp-args-change="%5B%5D"><option value="">All Classes</option></select>
+          <select class="filter-select" id="defaulterClassFilter" aria-label="Filter defaulters by class" data-csp-action-change="loadDefaulters" data-csp-args-change="%5B%5D"><option value="">All Classes</option></select>
         </div>
         <div class="card">
           <div class="table-wrapper">
@@ -159,9 +159,9 @@
           <div class="card-header"><h3>Generate Report</h3></div>
           <div class="card-body">
             <div class="form-grid csp-style-159ccfce8b" >
-              <div class="form-group csp-style-ab79ea2b85" ><label>Report Type</label><select class="form-control" id="repType"><option value="daily">Daily Collection</option><option value="monthly">Monthly Summary</option><option value="outstanding">Outstanding Fees</option></select></div>
-              <div class="form-group csp-style-ab79ea2b85" ><label>From Date</label><input type="date" class="form-control" id="repFrom"></div>
-              <div class="form-group csp-style-ab79ea2b85" ><label>To Date</label><input type="date" class="form-control" id="repTo"></div>
+              <div class="form-group csp-style-ab79ea2b85" ><label for="repType">Report Type</label><select class="form-control" id="repType"><option value="daily">Daily Collection</option><option value="monthly">Monthly Summary</option><option value="outstanding">Outstanding Fees</option></select></div>
+              <div class="form-group csp-style-ab79ea2b85" ><label for="repFrom">From Date</label><input type="date" class="form-control" id="repFrom"></div>
+              <div class="form-group csp-style-ab79ea2b85" ><label for="repTo">To Date</label><input type="date" class="form-control" id="repTo"></div>
               <button class="btn btn-primary csp-style-b7aa1ec004"  data-csp-action-click="generateReport" data-csp-args-click="%5B%5D"><i class="fas fa-file-export"></i> Generate</button>
             </div>
           </div>

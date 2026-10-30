@@ -4,39 +4,21 @@
     <meta charset="UTF-8">
     <title>Report Card</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; margin: 0; padding: 20px; color: #333; }
-        .page { width: 210mm; min-height: 297mm; margin: 0 auto; background: white; padding: 20mm; box-sizing: border-box; }
-        header { text-align: center; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-bottom: 20px; }
-        h1 { margin: 0; color: #2c3e50; font-size: 24px; text-transform: uppercase; }
-        .school-info { font-size: 14px; margin-top: 5px; }
-        .student-info { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; }
-        .student-info div { flex: 1; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 14px; }
-        th { background-color: #f8f9fa; font-weight: 600; }
-        .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 14px; }
-        .signature { border-top: 1px solid #333; width: 150px; text-align: center; padding-top: 5px; }
-        @media print {
-            body { padding: 0; background: none; }
-            .page { margin: 0; width: 100%; min-height: 100%; padding: 0; border: none; }
-            .no-print { display: none; }
-        }
-        .btn-print { display: block; margin: 20px auto; padding: 10px 20px; background: #007bff; color: #fff; border: none; cursor: pointer; text-align: center; width: 100px; border-radius: 5px;}
-    </style>
+    <link rel="stylesheet" href="/css/print-templates.css">
+    <script src="/js/print-templates.js"></script>
 </head>
-<body>
-    <button class="no-print btn-print" onclick="window.print()">Print</button>
-    <div class="page" id="reportCardContent">
-        <header>
-            <h1>Sunrise Public School</h1>
+<body class="report-card-body">
+    <button type="button" class="no-print btn-print btn-print-blue" aria-label="Print Student Report Card">Print</button>
+    <div class="page report-card-page" id="reportCardContent">
+        <header class="report-card-header">
+            <h1>RBG School</h1>
             <div class="school-info">123 Education Lane, Knowledge City, Country 45678</div>
             <div class="school-info">Phone: +1 234 567 8900 | Email: info@sunrisepublicschool.com</div>
-            <h2 style="margin: 15px 0 5px 0; font-size: 18px;">Student Report Card</h2>
-            <div style="font-size: 14px;">Academic Year: <span id="academicYear">2025-2026</span></div>
+            <h2 class="heading-report">Student Report Card</h2>
+            <div class="fs-14">Academic Year: <span id="academicYear">2025-2026</span></div>
         </header>
 
-        <div class="student-info">
+        <div class="student-info report-student-info">
             <div>
                 <p><strong>Student Name:</strong> <span id="studentName">Loading...</span></p>
                 <p><strong>Roll No:</strong> <span id="rollNo">Loading...</span></p>
@@ -49,7 +31,7 @@
             </div>
         </div>
 
-        <table>
+        <table class="report-table">
             <thead>
                 <tr>
                     <th>Subject</th>
@@ -64,65 +46,16 @@
             </tbody>
         </table>
 
-        <div style="margin-bottom: 20px; font-size: 14px;">
+        <div class="mb-20 fs-14">
             <p><strong>Overall Grade:</strong> <span id="overallGrade">Loading...</span></p>
             <p><strong>Remarks:</strong> <span id="remarks">Loading...</span></p>
         </div>
 
-        <div class="footer">
-            <div class="signature">Class Teacher</div>
-            <div class="signature">Principal</div>
-            <div class="signature">Parent/Guardian</div>
+        <div class="footer report-footer">
+            <div class="signature signature-line">Class Teacher</div>
+            <div class="signature signature-line">Principal</div>
+            <div class="signature signature-line">Parent/Guardian</div>
         </div>
     </div>
-
-    <script>
-        // Mock data fetch
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const studentId = params.get('id') || 'STU001';
-
-            // Simulate API call
-            setTimeout(() => {
-                const data = {
-                    name: 'John Doe',
-                    roll: '45',
-                    class: 'X-A',
-                    admissionNo: 'ADM-2021-1234',
-                    dob: '15-08-2010',
-                    attendance: '95%',
-                    overall: 'A',
-                    remarks: 'Excellent performance. Keep it up!',
-                    marks: [
-                        { subject: 'English', t1: 45, t2: 48, total: 93, grade: 'A1' },
-                        { subject: 'Mathematics', t1: 49, t2: 50, total: 99, grade: 'A1' },
-                        { subject: 'Science', t1: 42, t2: 46, total: 88, grade: 'A2' },
-                        { subject: 'Social Studies', t1: 40, t2: 45, total: 85, grade: 'A2' }
-                    ]
-                };
-
-                document.getElementById('studentName').innerText = data.name;
-                document.getElementById('rollNo').innerText = data.roll;
-                document.getElementById('className').innerText = data.class;
-                document.getElementById('admissionNo').innerText = data.admissionNo;
-                document.getElementById('dob').innerText = data.dob;
-                document.getElementById('attendance').innerText = data.attendance;
-                document.getElementById('overallGrade').innerText = data.overall;
-                document.getElementById('remarks').innerText = data.remarks;
-
-                const tbody = document.getElementById('marksBody');
-                data.marks.forEach(m => {
-                    const row = `<tr>
-                        <td>${m.subject}</td>
-                        <td>${m.t1}</td>
-                        <td>${m.t2}</td>
-                        <td>${m.total}</td>
-                        <td>${m.grade}</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-            }, 500);
-        });
-    </script>
 </body>
 </html>

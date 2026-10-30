@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parent Portal — Sunrise Public School</title>
+  <title>Parent Portal — RBG School</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -16,7 +16,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <i class="fas fa-user-friends"></i>
-      <div><h2>Sunrise Public School</h2><small>Parent Portal</small></div>
+      <div><h2>RBG School</h2><small>Parent Portal</small></div>
     </div>
     <div class="sidebar-user">
       <div class="sidebar-avatar" id="sidebarAvatar">P</div>
@@ -32,17 +32,17 @@
   </aside>
 
   <header class="topbar" id="topbar">
-    <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+    <button class="topbar-hamburger" aria-label="Toggle sidebar navigation" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
     <span class="topbar-breadcrumb" id="breadcrumb">Dashboard</span>
     <div class="topbar-search">
       <i class="fas fa-search"></i>
-      <input type="text" id="globalSearch" placeholder="Search notices, fees..." data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
+      <input type="text" id="globalSearch" placeholder="Search notices, fees..." aria-label="Search notices and fees" data-csp-action-keyup="handleGlobalSearch" data-csp-args-keyup="%5B%5D" data-csp-events-keyup="0">
     </div>
     <div class="topbar-actions">
-      <button class="topbar-btn" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notifications%22%5D" title="Notifications">
+      <button class="topbar-btn" aria-label="Notifications" data-csp-action-click="showPanel" data-csp-args-click="%5B%22notifications%22%5D" title="Notifications">
         <i class="fas fa-bell"></i><span class="notif-dot csp-style-6aa34d7432" id="notifDot" ></span>
       </button>
-      <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
+      <button class="topbar-btn" aria-label="Toggle dark mode" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D" title="Toggle dark mode">
         <i class="fas fa-moon" id="themeIcon"></i>
       </button>
       <div class="topbar-user csp-action-target" data-csp-action-click="showPanel" data-csp-args-click="%5B%22profile%22%5D" role="button" tabindex="0">
@@ -124,7 +124,7 @@
         <div class="section-header">
           <h2><i class="fas fa-calendar-check csp-style-f12767fa6c" ></i> Attendance</h2>
           <div class="actions">
-            <select class="filter-select" id="attMonthSel" data-csp-action-change="loadAttendance" data-csp-args-change="%5B%5D"></select>
+            <select class="filter-select" id="attMonthSel" aria-label="Filter attendance by month" data-csp-action-change="loadAttendance" data-csp-args-change="%5B%5D"></select>
           </div>
         </div>
         <div class="stats-grid csp-style-3abfdda825" id="attStats" ></div>
@@ -140,8 +140,8 @@
           <h2><i class="fas fa-book csp-style-f12767fa6c" ></i> Homework</h2>
         </div>
         <div class="filter-bar">
-          <select class="filter-select" id="hwSubjectFilter" data-csp-action-change="filterHomework" data-csp-args-change="%5B%5D"><option value="">All Subjects</option></select>
-          <select class="filter-select" id="hwStatusFilter" data-csp-action-change="filterHomework" data-csp-args-change="%5B%5D">
+          <select class="filter-select" id="hwSubjectFilter" aria-label="Filter homework by subject" data-csp-action-change="filterHomework" data-csp-args-change="%5B%5D"><option value="">All Subjects</option></select>
+          <select class="filter-select" id="hwStatusFilter" aria-label="Filter homework by status" data-csp-action-change="filterHomework" data-csp-args-change="%5B%5D">
             <option value="">All Status</option>
             <option value="pending">Pending</option>
             <option value="submitted">Submitted</option>
@@ -175,7 +175,7 @@
           <h2><i class="fas fa-chart-bar csp-style-f12767fa6c" ></i> Academic Results</h2>
         </div>
         <div class="filter-bar">
-          <select class="filter-select" id="resultExamFilter" data-csp-action-change="loadResults" data-csp-args-change="%5B%5D">
+          <select class="filter-select" id="resultExamFilter" aria-label="Filter results by exam" data-csp-action-change="loadResults" data-csp-args-change="%5B%5D">
             <option value="">All Exams</option>
             <option>Unit Test 1</option><option>Unit Test 2</option>
             <option>Half Yearly</option><option>Annual</option>
@@ -234,7 +234,7 @@
         <div class="section-header">
           <h2><i class="fas fa-bullhorn csp-style-f12767fa6c" ></i> School Notices</h2>
           <div class="actions">
-            <select class="filter-select" id="noticeTypeFilter" data-csp-action-change="loadNoticesFull" data-csp-args-change="%5B%5D">
+            <select class="filter-select" id="noticeTypeFilter" aria-label="Filter notices by type" data-csp-action-change="loadNoticesFull" data-csp-args-change="%5B%5D">
               <option value="">All Types</option>
               <option>General</option><option>Academic</option><option>Exam</option>
               <option>Holiday</option><option>Fee</option><option>Event</option>

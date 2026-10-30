@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   SUNRISE PUBLIC SCHOOL — FRONTEND APP JS
+   RBG SCHOOL — FRONTEND APP JS
    ═══════════════════════════════════════════════════ */
 
 'use strict';
@@ -488,7 +488,7 @@ function renderStudentTable(students) {
     const attColor = s.attendance >= 90 ? 'badge-success' : s.attendance >= 75 ? 'badge-warning' : 'badge-danger';
     const feeColor = s.fees === 'Paid' ? 'badge-success' : s.fees === 'Partial' ? 'badge-warning' : 'badge-danger';
     return `<tr>
-      <td><input type="checkbox" class="studentCheck" /></td>
+      <td><input type="checkbox" class="studentCheck" aria-label="Select student ${s.name}" /></td>
       <td><code class="csp-style-d69cde6c14">${s.admNo}</code></td>
       <td>
         <div class="student-name-cell">
@@ -504,9 +504,9 @@ function renderStudentTable(students) {
       <td><span class="badge ${feeColor}">${s.fees}</span></td>
       <td>
         <div class="action-btns">
-          <button class="act-btn view" title="View" ${cspActionAttrs("viewStudent", ['${s.id}'], "click", [], [])}><i class="fas fa-eye"></i></button>
-          <button class="act-btn edit" title="Edit" ${cspActionAttrs("editStudent", ['${s.id}'], "click", [], [])}><i class="fas fa-edit"></i></button>
-          <button class="act-btn delete" title="Delete" ${cspActionAttrs("confirmDeleteStudent", ['${s.id}', '${s.name}'], "click", [], [])}><i class="fas fa-trash"></i></button>
+          <button class="act-btn view" title="View" aria-label="View details for ${s.name}" ${cspActionAttrs("viewStudent", ['${s.id}'], "click", [], [])}><i class="fas fa-eye"></i></button>
+          <button class="act-btn edit" title="Edit" aria-label="Edit student ${s.name}" ${cspActionAttrs("editStudent", ['${s.id}'], "click", [], [])}><i class="fas fa-edit"></i></button>
+          <button class="act-btn delete" title="Delete" aria-label="Delete student ${s.name}" ${cspActionAttrs("confirmDeleteStudent", ['${s.id}', '${s.name}'], "click", [], [])}><i class="fas fa-trash"></i></button>
         </div>
       </td>
     </tr>`;
@@ -585,9 +585,9 @@ function renderPagination(total, perPage, containerId) {
   if (pages <= 1) { container.innerHTML = ''; return; }
   let html = `<button type="button" class="page-btn" data-pagination-container="${containerId}" data-pagination-direction="prev" aria-label="Previous page"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>`;
   for (let i = 1; i <= Math.min(pages, 5); i++) {
-    html += `<button class="page-btn ${i === 1 ? 'active' : ''}">${i}</button>`;
+    html += `<button class="page-btn ${i === 1 ? 'active' : ''}" aria-label="Page ${i}">${i}</button>`;
   }
-  if (pages > 5) html += `<span class="pagination-ellipsis">...</span><button type="button" class="page-btn" data-pagination-container="${containerId}" data-pagination-page="${pages}">${pages}</button>`;
+  if (pages > 5) html += `<span class="pagination-ellipsis">...</span><button type="button" class="page-btn" data-pagination-container="${containerId}" data-pagination-page="${pages}" aria-label="Page ${pages}">${pages}</button>`;
   html += `<button type="button" class="page-btn" data-pagination-container="${containerId}" data-pagination-direction="next" aria-label="Next page"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>`;
   container.innerHTML = html;
 }
@@ -721,7 +721,7 @@ function renderAttendanceSheet(students) {
                   `).join('')}
                 </div>
               </td>
-              <td><input type="text" placeholder="Remarks..." class="csp-style-a21c632a2a" /></td>
+              <td><input type="text" placeholder="Remarks..." aria-label="Remarks for ${s.name}" class="csp-style-a21c632a2a" /></td>
             </tr>
           `).join('')}
         </tbody>
@@ -814,16 +814,16 @@ function buildMarksTable(students, maxMarks, exam, subj) {
               <td>${s.roll}</td>
               <td><b>${s.name}</b></td>
               <td>
-                <input type="number" min="0" max="${maxMarks}" placeholder="—"
+                <input type="number" min="0" max="${maxMarks}" placeholder="—" aria-label="Marks for ${s.name}"
                   class="csp-style-9a8d7f016f"
                   ${cspActionAttrs("calcLiveGrade", [maxMarks], "input", [0], [])}/>
               </td>
               <td class="live-grade-${s.id || s.roll} csp-style-0bd3a158a0" >—</td>
               <td>
-                <input type="checkbox" title="Mark as absent" ${cspActionAttrs("toggleSiblingDisabled", [], "change", [0], [])}/>
+                <input type="checkbox" title="Mark as absent" aria-label="Mark ${s.name} as absent" ${cspActionAttrs("toggleSiblingDisabled", [], "change", [0], [])}/>
               </td>
               <td>
-                <input type="text" placeholder="Optional"
+                <input type="text" placeholder="Optional" aria-label="Remarks for ${s.name}"
                   class="csp-style-b693b02f32" />
               </td>
             </tr>
@@ -978,8 +978,8 @@ function loadFeesData() {
       <td><span class="badge ${badgeCls}">${f.status}</span></td>
       <td>
         <div class="action-btns">
-          <button class="act-btn view" ${cspActionAttrs("showToast", ['Viewing receipt...', 'success'], "click", [], [])}><i class="fas fa-receipt"></i></button>
-          <button class="act-btn edit" ${cspActionAttrs("showToast", ['Recording payment...', 'success'], "click", [], [])}><i class="fas fa-plus"></i></button>
+          <button class="act-btn view" aria-label="View receipt for ${f.name}" ${cspActionAttrs("showToast", ['Viewing receipt...', 'success'], "click", [], [])}><i class="fas fa-receipt"></i></button>
+          <button class="act-btn edit" aria-label="Record payment for ${f.name}" ${cspActionAttrs("showToast", ['Recording payment...', 'success'], "click", [], [])}><i class="fas fa-plus"></i></button>
         </div>
       </td>
     </tr>`;

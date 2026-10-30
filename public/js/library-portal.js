@@ -145,7 +145,7 @@ window.filterCatalog = function() {
     <td><span class="badge badge-secondary">${b.category||'General'}</span></td>
     <td>${b.availableCopies||0} / ${b.totalCopies||0}</td>
     <td>
-      <button class="btn btn-ghost btn-sm" ${cspActionAttrs("showAlert", ['Edit functionality'], "click", [], [])}><i class="fas fa-edit"></i></button>
+      <button class="btn btn-ghost btn-sm" aria-label="Edit book ${b.title}" ${cspActionAttrs("showAlert", ['Edit functionality'], "click", [], [])}><i class="fas fa-edit"></i></button>
     </td>
   </tr>`).join('');
 };

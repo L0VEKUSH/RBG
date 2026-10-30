@@ -122,7 +122,7 @@ function renderAlertBanners(d) {
         <strong>Fee Payment Due</strong>
         ${formatCurrency(d.feeStatus.pending)} is outstanding. Please pay at the fee counter.
       </div>
-      <button class="alert-dismiss btn-ghost btn-sm" ${cspActionAttrs("removeParent", [], "click", [], [])}><i class="fas fa-times"></i></button>
+      <button class="alert-dismiss btn-ghost btn-sm" aria-label="Dismiss fee alert" ${cspActionAttrs("removeParent", [], "click", [], [])}><i class="fas fa-times"></i></button>
     </div>`;
   }
 
@@ -133,7 +133,7 @@ function renderAlertBanners(d) {
         <strong>Low Attendance Warning</strong>
         Your attendance is ${d.attendancePct.toFixed(1)}%, which is below the required 75%.
       </div>
-      <button class="alert-dismiss btn-ghost btn-sm" ${cspActionAttrs("removeParent", [], "click", [], [])}><i class="fas fa-times"></i></button>
+      <button class="alert-dismiss btn-ghost btn-sm" aria-label="Dismiss fee alert" ${cspActionAttrs("removeParent", [], "click", [], [])}><i class="fas fa-times"></i></button>
     </div>`;
   }
 
@@ -144,7 +144,7 @@ function renderAlertBanners(d) {
         <strong>${d.homeworkPending} Homework ${d.homeworkPending > 1 ? 'assignments' : 'assignment'} pending</strong>
         Check the Homework section for details.
       </div>
-      <button class="alert-dismiss btn-ghost btn-sm" ${cspActionAttrs("removeParent", [], "click", [], [])}><i class="fas fa-times"></i></button>
+      <button class="alert-dismiss btn-ghost btn-sm" aria-label="Dismiss fee alert" ${cspActionAttrs("removeParent", [], "click", [], [])}><i class="fas fa-times"></i></button>
     </div>`;
   }
 
@@ -295,7 +295,7 @@ async function loadTimetable() {
 
     // Build day tabs
     tabs.innerHTML = days.map(d =>
-      `<button class="tab-btn ${d===today?'active':''}" ${cspActionAttrs("showTimetableDay", ['${d}'], "click", [1], [])}>${d.slice(0,3)}</button>`
+      `<button class="tab-btn ${d===today?'active':''}" aria-label="${d}" ${cspActionAttrs("showTimetableDay", ['${d}'], "click", [1], [])}>${d.slice(0,3)}</button>`
     ).join('');
 
     showTimetableDay(today, tabs.querySelector('.active'));

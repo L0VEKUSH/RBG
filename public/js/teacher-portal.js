@@ -348,7 +348,7 @@ window.loadStudentsForMarks = async function() {
       <tr>
         <td>${s.rollNumber||'—'}</td>
         <td class="csp-style-6e8bcfac8d">${s.name}</td>
-        <td><input type="number" class="form-control csp-style-3a06261726"  id="mo_${i}" max="${mx}" ${cspActionAttrs("calcGrade", [i], "input", [], [])}></td>
+        <td><input type="number" class="form-control csp-style-3a06261726" id="mo_${i}" max="${mx}" aria-label="Marks for ${s.name}" ${cspActionAttrs("calcGrade", [i], "input", [], [])}></td>
         <td><span id="mp_${i}" class="csp-style-3d2508e113">—</span></td>
         <td><span class="badge badge-secondary" id="mg_${i}">—</span></td>
       </tr>

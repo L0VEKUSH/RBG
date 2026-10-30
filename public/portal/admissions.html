@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admissions Portal — Sunrise Public School</title>
+    <title>Admissions Portal — RBG School</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
@@ -14,14 +14,14 @@
 <body>
     <div class="sidebar" id="sidebar"></div>
     <div class="topbar">
-        <button class="topbar-hamburger" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
+        <button class="topbar-hamburger" aria-label="Toggle sidebar navigation" data-csp-action-click="toggleSidebar" data-csp-args-click="%5B%5D"><i class="fas fa-bars"></i></button>
         <div class="topbar-search">
             <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search application...">
+            <input type="text" placeholder="Search application..." aria-label="Search application">
         </div>
         <div class="topbar-right">
-            <button class="topbar-btn" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D"><i class="fas fa-moon"></i></button>
-            <button class="topbar-btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
+            <button class="topbar-btn" aria-label="Toggle dark mode" data-csp-action-click="toggleDarkMode" data-csp-args-click="%5B%5D"><i class="fas fa-moon"></i></button>
+            <button class="topbar-btn" aria-label="Notifications"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
             <div class="profile-menu">
                 <div class="profile-avatar" id="topbarAvatar">A</div>
             </div>
@@ -129,14 +129,14 @@
                 </div>
                 <div class="card">
                     <div class="filter-bar">
-                        <input type="text" class="filter-input" placeholder="Search by name, app number, email..." id="appSearch">
-                        <select class="filter-select" id="appClassFilter">
+                        <input type="text" class="filter-input" placeholder="Search by name, app number, email..." id="appSearch" aria-label="Search applications by name, number, or email">
+                        <select class="filter-select" id="appClassFilter" aria-label="Filter applications by class">
                             <option value="">All Classes</option>
                             <option value="Pre-Nursery">Pre-Nursery</option>
                             <option value="1">Class 1</option>
                             <option value="10">Class 10</option>
                         </select>
-                        <select class="filter-select" id="appStatusFilter">
+                        <select class="filter-select" id="appStatusFilter" aria-label="Filter applications by status">
                             <option value="">All Statuses</option>
                             <option value="Submitted">Submitted</option>
                             <option value="Under_Review">Under Review</option>
@@ -178,11 +178,11 @@
                     
                     <div class="profile-meta">
                         <div class="profile-meta-item">
-                            <label>Email</label>
+                            <span class="meta-label">Email</span>
                             <span id="profileEmail">-</span>
                         </div>
                         <div class="profile-meta-item">
-                            <label>Phone</label>
+                            <span class="meta-label">Phone</span>
                             <span id="profilePhone">-</span>
                         </div>
                     </div>

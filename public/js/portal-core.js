@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════
-   SUNRISE PUBLIC SCHOOL — portal-core.js v2.0
+   RBG SCHOOL — portal-core.js v2.0
    Shared JavaScript for ALL role portals
    ══════════════════════════════════════════════════════════════ */
 
@@ -196,7 +196,7 @@ function showToast(type, title, message, duration = 3500) {
       <div class="toast-title">${title}</div>
       ${message ? `<div class="toast-msg">${message}</div>` : ''}
     </div>
-    <button class="toast-close" ${cspActionAttrs("removeParent", [], "click", [], [])}><i class="fas fa-times"></i></button>
+    <button class="toast-close" aria-label="Close notification" ${cspActionAttrs("removeParent", [], "click", [], [])}><i class="fas fa-times"></i></button>
   `;
   container.appendChild(t);
   setTimeout(() => t.remove(), duration);
@@ -521,7 +521,7 @@ function renderPagination(containerId, total, page, limit, onPageChange) {
       if (i === 2 || i === pages-1) html += `<span class="pagination-ellipsis">…</span>`;
       continue;
     }
-    html += `<button type="button" class="page-btn ${i===page?'active':''}" data-pager-page="${i}" aria-current="${i===page?'page':'false'}">${i}</button>`;
+    html += `<button type="button" class="page-btn ${i===page?'active':''}" data-pager-page="${i}" aria-label="Page ${i}" aria-current="${i===page?'page':'false'}">${i}</button>`;
   }
   html += `<button type="button" class="page-btn" data-pager-page="${page+1}" aria-label="Next page" ${page>=pages?'disabled':''}><i class="fas fa-chevron-right" aria-hidden="true"></i></button>`;
   el.innerHTML = html;
@@ -539,26 +539,26 @@ function renderProfilePanel(user) {
     </div>
     <div class="card-body csp-style-9953b932b0" >
       <div class="profile-meta">
-        <div class="profile-meta-item"><label>Email</label><span>${user.email||'—'}</span></div>
-        <div class="profile-meta-item"><label>Phone</label><span>${user.phone||'—'}</span></div>
-        <div class="profile-meta-item"><label>Gender</label><span>${capitalize(user.gender||'—')}</span></div>
-        <div class="profile-meta-item"><label>Member Since</label><span>${formatDate(user.createdAt)}</span></div>
+        <div class="profile-meta-item"><span class="meta-label">Email</span><span>${user.email||'—'}</span></div>
+        <div class="profile-meta-item"><span class="meta-label">Phone</span><span>${user.phone||'—'}</span></div>
+        <div class="profile-meta-item"><span class="meta-label">Gender</span><span>${capitalize(user.gender||'—')}</span></div>
+        <div class="profile-meta-item"><span class="meta-label">Member Since</span><span>${formatDate(user.createdAt)}</span></div>
       </div>
     </div>
     <div class="card-body csp-style-9953b932b0" >
       <h4 class="csp-style-68f37cd999">Update Profile</h4>
       <div class="form-grid csp-style-9430410d62" >
-        <div class="form-group"><label>Name</label><input class="form-control" id="profileName" value="${user.name||''}"></div>
-        <div class="form-group"><label>Phone</label><input class="form-control" id="profilePhone" value="${user.phone||''}"></div>
+        <div class="form-group"><label for="profileName">Name</label><input class="form-control" id="profileName" autocomplete="name" value="${user.name||''}"></div>
+        <div class="form-group"><label for="profilePhone">Phone</label><input class="form-control" id="profilePhone" autocomplete="tel" value="${user.phone||''}"></div>
       </div>
       <button class="btn btn-primary btn-sm" ${cspActionAttrs("updateProfileInfo", [], "click", [], [])}><i class="fas fa-save"></i> Update</button>
     </div>
     <div class="card-body csp-style-9953b932b0" >
       <h4 class="csp-style-68f37cd999">Change Password</h4>
       <div class="form-grid csp-style-7d60fe7df3" >
-        <div class="form-group"><label>Current Password</label><input type="password" class="form-control" id="pwCurrent"></div>
-        <div class="form-group"><label>New Password</label><input type="password" class="form-control" id="pwNew"></div>
-        <div class="form-group"><label>Confirm</label><input type="password" class="form-control" id="pwConfirm"></div>
+        <div class="form-group"><label for="pwCurrent">Current Password</label><input type="password" class="form-control" id="pwCurrent" autocomplete="current-password"></div>
+        <div class="form-group"><label for="pwNew">New Password</label><input type="password" class="form-control" id="pwNew" autocomplete="new-password"></div>
+        <div class="form-group"><label for="pwConfirm">Confirm</label><input type="password" class="form-control" id="pwConfirm" autocomplete="new-password"></div>
       </div>
       <button class="btn btn-secondary btn-sm" ${cspActionAttrs("changePasswordAction", [], "click", [], [])}><i class="fas fa-lock"></i> Change Password</button>
     </div>

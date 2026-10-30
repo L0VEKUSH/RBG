@@ -250,7 +250,7 @@ async function loadAcademics() {
     const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const today = getTodayDayName();
     
-    tabs.innerHTML = days.map(d => `<button class="tab-btn ${d===today?'active':''}" ${cspActionAttrs("showParentTimetableDay", ['${encodeURIComponent(JSON.stringify(ttData[d]||[]))}'], "click", [0], [])}>${d.slice(0,3)}</button>`).join('');
+    tabs.innerHTML = days.map(d => `<button class="tab-btn ${d===today?'active':''}" aria-label="${d}" ${cspActionAttrs("showParentTimetableDay", ['${encodeURIComponent(JSON.stringify(ttData[d]||[]))}'], "click", [0], [])}>${d.slice(0,3)}</button>`).join('');
     
     // Simulate click on today
     showParentTimetableDay(tabs.querySelector('.active') || tabs.firstElementChild, JSON.stringify(ttData[today]||[]));
@@ -488,10 +488,10 @@ async function loadTransport() {
     
     el.innerHTML = `<div class="card"><div class="card-body">
       <div class="csp-style-f465b5e616">
-        <div><label class="csp-style-632dbf6184">Bus Number</label><div class="csp-style-c6fa01b3f1">${t.busNumber||'—'}</div></div>
-        <div><label class="csp-style-632dbf6184">Route</label><div class="csp-style-c6fa01b3f1">${t.route?.name||t.routeName||'—'}</div></div>
-        <div><label class="csp-style-632dbf6184">Pickup Stop</label><div class="csp-style-c6fa01b3f1">${t.pickupStop||t.stop||'—'}</div></div>
-        <div><label class="csp-style-632dbf6184">Pickup Time</label><div class="csp-style-c6fa01b3f1">${t.pickupTime||'—'}</div></div>
+        <div><span class="csp-style-632dbf6184">Bus Number</span><div class="csp-style-c6fa01b3f1">${t.busNumber||'—'}</div></div>
+        <div><span class="csp-style-632dbf6184">Route</span><div class="csp-style-c6fa01b3f1">${t.route?.name||t.routeName||'—'}</div></div>
+        <div><span class="csp-style-632dbf6184">Pickup Stop</span><div class="csp-style-c6fa01b3f1">${t.pickupStop||t.stop||'—'}</div></div>
+        <div><span class="csp-style-632dbf6184">Pickup Time</span><div class="csp-style-c6fa01b3f1">${t.pickupTime||'—'}</div></div>
       </div>
     </div></div>`;
   } catch(e) { setEmptyState(el, 'bus', 'Error', e.message); }
