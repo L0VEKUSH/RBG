@@ -1,5 +1,12 @@
 const authService = require('../services/auth.service');
+const uploadService = require('../services/upload.service');
+const User = require('../models/User');
+const ErrorResponse = require('../utils/errorResponse');
 const { sendTokenResponse } = require('../utils/generateToken');
+const logger = require('../utils/logger');
+
+const GENERIC_FORGOT_PASSWORD_MESSAGE =
+  'If an account with that email exists, a password reset link has been sent.';
 
 /**
  * @desc    Register user
@@ -7,8 +14,10 @@ const { sendTokenResponse } = require('../utils/generateToken');
  * @access  Private (Admin)
  */
 exports.register = async (req, res) => {
-  const user = await authService.register(req.body);
-  sendTokenResponse(user, 201, res, 'Registration successful');
+  res.status(410).json({
+    success: false,
+    message: 'Password-based account creation is disabled. Use the Student or Teacher invitation workflow; the account owner sets their password during activation.',
+  });
 };
 
 /**
@@ -28,9 +37,15 @@ exports.login = async (req, res) => {
  * @access  Private
  */
 exports.logout = async (req, res) => {
+  const userId = req.user?._id || req.user?.id;
+  if (userId) {
+    await authService.logout(userId);
+  }
   res.cookie('token', 'none', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
   });
   res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
@@ -72,21 +87,80 @@ exports.changePassword = async (req, res) => {
  * @access  Public
  */
 exports.forgotPassword = async (req, res) => {
-  const { user, resetToken } = await authService.forgotPassword(req.body.email);
-  const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+  try {
+    await authService.forgotPassword(req.body.email);
+  } catch (err) {
+    // If it's a server configuration error (e.g. invalid CORS_ORIGIN or FRONTEND_URL in production),
+    // re-throw so the operational error is surfaced to administrators.
+    if (err.statusCode === 500 && err.message && err.message.includes('Server configuration error')) {
+      throw err;
+    }
+    // For email delivery and downstream errors, log internally but do not leak to client
+    // to prevent user account enumeration and infrastructure disclosure (H2 remediation).
+    logger.error(`Forgot password operational error suppressed from client: ${err.message}`);
+  }
+
   res.status(200).json({
     success: true,
-    message: 'Password reset token generated. Check your email.',
-    ...(process.env.NODE_ENV === 'development' && { resetUrl }),
+    message: GENERIC_FORGOT_PASSWORD_MESSAGE,
   });
 };
 
 /**
  * @desc    Reset password
- * @route   PUT /api/v1/auth/reset-password/:token
+ * @route   PUT /api/v1/auth/reset-password
  * @access  Public
  */
 exports.resetPassword = async (req, res) => {
-  const user = await authService.resetPassword(req.params.token, req.body.password);
+  const user = await authService.resetPassword(req.body.token, req.body.password);
   sendTokenResponse(user, 200, res, 'Password reset successful');
+};
+
+exports.activateAccount = async (req, res) => {
+  await authService.activateAccount(req.body.token, req.body.password);
+  res.status(200).json({
+    success: true,
+    message: 'Account activated successfully. You can now sign in.',
+  });
+};
+
+/**
+ * @desc    Upload authenticated user profile photo
+ * @route   POST /api/v1/auth/profile-photo
+ * @access  Private
+ */
+exports.uploadProfilePhoto = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return next(new ErrorResponse('Please select a photo to upload', 400));
+    }
+    const saved = await uploadService.saveFile(req.file, 'profiles');
+    let user;
+    try {
+      user = await User.findById(req.user.id || req.user._id);
+      if (!user) {
+        throw new ErrorResponse('User not found', 404);
+      }
+      const oldPhoto = user.profilePhoto;
+      user.profilePhoto = saved.url;
+      await user.save();
+
+      // Delete old photo file if it was a managed upload, ONLY after DB update succeeds
+      if (oldPhoto && oldPhoto !== saved.url) {
+        await uploadService.safeDeleteOldUpload(oldPhoto);
+      }
+    } catch (dbErr) {
+      // Safe cleanup of newly saved file if database update fails
+      await uploadService.deleteFile(saved.filename, 'profiles');
+      throw dbErr;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile photo updated',
+      data: { profilePhoto: saved.url, user },
+    });
+  } catch (err) {
+    next(err);
+  }
 };

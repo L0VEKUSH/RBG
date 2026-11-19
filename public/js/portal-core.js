@@ -8,17 +8,14 @@
 /* ─── 1. API / Auth Core ─────────────────────────────────────── */
 const API = '/api/v1';
 
-function getToken()  { return localStorage.getItem('token'); }
 function getUser()   { try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; } }
 
 async function apiFetch(path, opts = {}) {
   const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
-  const tok = getToken();
-  if (tok) headers['Authorization'] = 'Bearer ' + tok;
 
   let res;
   try {
-    res = await fetch(API + path, { ...opts, headers });
+    res = await fetch(API + path, { ...opts, headers, credentials: 'include' });
   } catch (err) {
     throw { status: 0, message: 'Network error. Check your connection.' };
   }
@@ -37,14 +34,10 @@ async function apiFetch(path, opts = {}) {
 }
 
 function clearSession() {
-  localStorage.removeItem('token');
   localStorage.removeItem('user');
 }
 
 async function initAuth(expectedRoles) {
-  const tok = getToken();
-  if (!tok) { window.location.href = '/portal/login.html'; return null; }
-
   try {
     const data = await apiFetch('/auth/me');
     const user = data.data || data.user;

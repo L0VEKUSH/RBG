@@ -33,7 +33,7 @@ RBG School ERP is a complete, production-hardened K–12 school management syste
 - Attendance marking with P/A/L toggles, Mark All Present, live counter
 - Homework assignment and submission review
 - Study material management
-- Marks entry with CBSE grade preview (A1–E) aligned to backend
+- Marks entry withUP Board grade preview (A1–E) aligned to backend
 - Real API save — backend recalculates authoritative grade on save
 - Class roster and student profiles
 - Leave request approval (for Class Teachers)
@@ -45,7 +45,7 @@ RBG School ERP is a complete, production-hardened K–12 school management syste
 - Homework list with subject filter
 - Attendance calendar (monthly P/A/L view)
 - Published-only exam results (unpublished marks never exposed)
-- CBSE grade cards
+-UP Board grade cards
 - Fee ledger (offline — cash/DD only; clearly labelled)
 - Library book status
 - Leave application
@@ -72,7 +72,7 @@ RBG School ERP is a complete, production-hardened K–12 school management syste
 ### Academic Workflows
 - Attendance marking and monthly reports
 - Homework assignment, submission, and review
-- Marks entry with CBSE grading (A1, A2, B1, B2, C1, C2, D, E)
+- Marks entry withUP Board grading (A1, A2, B1, B2, C1, C2, D, E)
 - Marks publish workflow (unpublished marks hidden from students/parents)
 - Rank computation
 - Report Card generation
@@ -230,7 +230,7 @@ See `docs/backup_recovery.md`
 | Admissions | ✅ **READY** | Public endpoint hardened, full workflow |
 | Attendance | ✅ **READY** | Daily marking, monthly reports |
 | Homework | ✅ **READY** | Assign, submit, review |
-| Marks / Grading | ✅ **READY** | CBSE consistent, server-authoritative |
+| Marks / Grading | ✅ **READY** |UP Board consistent, server-authoritative |
 | Results | ✅ **READY** | Published-only protection |
 | Fee Ledger | ✅ **READY WITH LIMITATION** | Offline only — no online payments |
 | Public Website | ✅ **READY** | 10 pages, API-connected, mobile responsive |

@@ -12,7 +12,7 @@ const {
 } = require('../controllers/attendance.controller');
 
 const { protect } = require('../middleware/auth.middleware');
-const { requireRole, requirePermission, requireOwnership, requireClassAccess } = require('../middleware/authorization.middleware');
+const { requirePermission } = require('../middleware/authorization.middleware');
 const { validate } = require('../middleware/validate.middleware');
 const {
   markAttendanceValidation,
@@ -23,7 +23,7 @@ router.use(protect);
 
 router.post('/mark', requirePermission('attendance.mark'), markAttendanceValidation, validate, markAttendance);
 
-router.get('/class/:class', requirePermission('attendance.view', 'attendance.view-assigned'), requireClassAccess('class'), getClassAttendance);
+router.get('/class/:class', requirePermission('attendance.view', 'attendance.view-assigned'), getClassAttendance);
 
 router.get('/report', requirePermission('attendance.report'), getClassReport);
 

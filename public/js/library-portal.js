@@ -20,6 +20,42 @@ const LIBRARY_NAV = [
 
 let _catalog = [];
 
+function setLibraryMessage(element, message, state = 'empty-state') {
+  if (!element) return;
+  if (element.id === 'libStats' || element.id === 'dashOverdue') {
+    const messageElement = document.createElement('div');
+    messageElement.className = state;
+    messageElement.textContent = message;
+    element.replaceChildren(messageElement);
+    return;
+  }
+  element.className = state;
+  element.textContent = message;
+}
+
+function renderLibraryStats(grid, stats) {
+  const cards = [
+    ['Active titles', stats.totalBooks],
+    ['Issued loans', stats.issuedBooks],
+  ];
+  grid.replaceChildren();
+  for (const [label, value] of cards) {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    const content = document.createElement('div');
+    content.className = 'stat-content';
+    const valueElement = document.createElement('div');
+    valueElement.className = 'stat-value';
+    valueElement.textContent = new Intl.NumberFormat().format(value);
+    const labelElement = document.createElement('div');
+    labelElement.className = 'stat-label';
+    labelElement.textContent = label;
+    content.append(valueElement, labelElement);
+    card.append(content);
+    grid.append(card);
+  }
+}
+
 initPortal({
   role: 'librarian',
   expectedRoles: ['librarian', 'super_admin', 'school_admin'],
@@ -29,40 +65,42 @@ initPortal({
 
 window.onPanel_dashboard = loadLibraryDashboard;
 window.onPanel_issue = initIssue;
-window.onPanel_return = () => { cspSetVisibility(document.getElementById('returnDetails'), false); document.getElementById('retBookId').value=''; };
+window.onPanel_return = () => { loadReturnLoans(); };
 window.onPanel_catalog = loadCatalog;
 window.onPanel_notices = loadNoticesFull;
 
 async function loadLibraryDashboard() {
+  const grid = document.getElementById('libStats');
+  const chart = document.getElementById('dashInventoryChart')?.parentElement;
+  const overdue = document.getElementById('dashOverdue');
   try {
-    const data = await apiFetch('/library/report'); // Assuming backend provides report data
-    const d = data.data || data;
-    
-    const tBks = d.totalBooks || 15420;
-    const iss = d.currentlyIssued || 1250;
-    const av = tBks - iss;
-    const od = d.overdueCount || 45;
+    const response = await apiFetch('/library/stats');
+    const stats = response?.data;
+    if (response?.success !== true || !stats ||
+        !Number.isSafeInteger(stats.totalBooks) || stats.totalBooks < 0 ||
+        !Number.isSafeInteger(stats.issuedBooks) || stats.issuedBooks < 0) {
+      throw new Error('Library statistics response is unavailable.');
+    }
+    renderLibraryStats(grid, stats);
+  } catch (error) {
+    setLibraryMessage(grid, error?.message || 'Library dashboard data could not be loaded.', 'error-state');
+  }
 
-    const grid = document.getElementById('libStats');
-    grid.innerHTML = `
-      <div class="stat-card primary"><div class="stat-icon primary"><i class="fas fa-books"></i></div><div class="stat-content"><div class="stat-value">${formatNumber(tBks)}</div><div class="stat-label">Total Inventory</div></div></div>
-      <div class="stat-card teal"><div class="stat-icon teal"><i class="fas fa-book-reader"></i></div><div class="stat-content"><div class="stat-value">${formatNumber(iss)}</div><div class="stat-label">Issued Books</div></div></div>
-      <div class="stat-card success"><div class="stat-icon success"><i class="fas fa-check"></i></div><div class="stat-content"><div class="stat-value">${formatNumber(av)}</div><div class="stat-label">Available</div></div></div>
-      <div class="stat-card danger"><div class="stat-icon danger"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-content"><div class="stat-value">${od}</div><div class="stat-label">Overdue</div></div></div>
-    `;
+  if (chart) chart.textContent = 'Inventory breakdown is not provided by the available statistics endpoint.';
 
-    createDoughnutChart('dashInventoryChart', ['Available', 'Issued'], [av, iss], ['#10b981', '#7c3aed']);
-
-    const odEl = document.getElementById('dashOverdue');
-    const overdues = d.recentOverdue || [
-      { student:'Ravi Kumar', class:'10', book:'Physics Vol 2', days:4 },
-      { student:'Neha Singh', class:'8', book:'Harry Potter', days:2 }
-    ];
-    odEl.innerHTML = overdues.map(o => `<div class="csp-style-3dc6424224">
-      <div><div class="csp-style-6e8bcfac8d">${o.student} (Cl. ${o.class})</div><div class="csp-style-3bdae21a61">${o.book}</div></div>
-      <div class="csp-style-14c1a8202e">${o.days}d Overdue</div>
-    </div>`).join('');
-  } catch(e) {}
+  try {
+    const response = await apiFetch('/library/overdue');
+    if (response?.success !== true || !Array.isArray(response.data)) {
+      throw new Error('Overdue loan response is unavailable.');
+    }
+    const count = response.data.length;
+    setLibraryMessage(
+      overdue,
+      count === 0 ? 'No overdue loans.' : `${new Intl.NumberFormat().format(count)} overdue loan${count === 1 ? '' : 's'}.`
+    );
+  } catch (error) {
+    setLibraryMessage(overdue, error?.message || 'Overdue loan data could not be loaded.', 'error-state');
+  }
 }
 
 /* ── Issue Book ── */
@@ -73,48 +111,128 @@ function initIssue() {
 }
 
 window.submitIssue = async function() {
-  const role = document.getElementById('issueRole').value;
-  const mem = document.getElementById('issueMemberId').value.trim();
+  const studentId = document.getElementById('issueStudentId').value.trim();
   const bk = document.getElementById('issueBookId').value.trim();
   const due = document.getElementById('issueDueDate').value;
   const btn = document.getElementById('btnIssueSubmit');
 
-  if(!mem || !bk || !due) return toast.warning('Missing Data', 'Fill all required fields.');
+  if(!studentId || !bk || !due) return toast.warning('Missing Data', 'Fill all required fields.');
 
   setButtonLoading(btn, true);
   try {
-    await apiFetch('/library/issue', { method: 'POST', body: JSON.stringify({ role, memberId: mem, bookId: bk, dueDate: due }) });
+    await apiFetch('/library/issue', { method: 'POST', body: JSON.stringify({ bookId: bk, studentId, dueDate: due }) });
     toast.success('Issued', 'Book issued successfully.');
-    document.getElementById('issueMemberId').value = '';
+    document.getElementById('issueStudentId').value = '';
     document.getElementById('issueBookId').value = '';
   } catch(e) { toast.error('Error', e.message); }
   finally { setButtonLoading(btn, false); }
 };
 
 /* ── Return Book ── */
-window.lookupReturn = async function() {
-  const bk = document.getElementById('retBookId').value.trim();
-  if(!bk) return toast.warning('Missing', 'Enter Book ID');
-  
-  // Fake lookup for demo
-  cspSetVisibility(document.getElementById('returnDetails'), true, 'block');
-  document.getElementById('retBookTitle').textContent = `Book #${bk}`;
-  document.getElementById('retMemberName').textContent = 'Student/Staff Name';
+function setReturnStatus(message, state = 'empty-state') {
+  setLibraryMessage(document.getElementById('returnStatus'), message, state);
+}
+
+window.onReturnSelectionChange = function() {
+  const selection = document.getElementById('returnTransactionId');
+  const button = document.getElementById('btnProcessReturn');
+  if (button) button.disabled = !selection?.value;
+};
+
+window.loadReturnLoans = async function(options = {}) {
+  const select = document.getElementById('returnTransactionId');
+  const refreshButton = document.getElementById('btnRefreshLoans');
+  const returnButton = document.getElementById('btnProcessReturn');
+  if (!select) return false;
+
+  const silent = options && options.silent === true;
+  const originalRefreshText = refreshButton?.textContent;
+  if (refreshButton) {
+    refreshButton.disabled = true;
+    refreshButton.textContent = 'Loading issued loans…';
+  }
+  if (returnButton) returnButton.disabled = true;
+  select.replaceChildren();
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Select an issued loan';
+  select.append(placeholder);
+  if (!silent) setReturnStatus('Loading issued loans…');
+
+  try {
+    const response = await apiFetch('/library/transactions');
+    if (response?.success !== true || !Array.isArray(response.data)) {
+      throw new Error('Issued loan records are unavailable.');
+    }
+
+    const issuedLoans = response.data.filter(loan => loan && loan.status === 'Issued' && loan._id);
+    for (const loan of issuedLoans) {
+      const transactionId = String(loan._id);
+      const title = loan.book?.title || 'Book details unavailable';
+      const student = loan.student?.user?.name || loan.student?.admissionNumber || 'Borrower details unavailable';
+      const dueDateValue = loan.dueDate ? new Date(loan.dueDate) : null;
+      const dueDate = dueDateValue && Number.isFinite(dueDateValue.getTime())
+        ? new Intl.DateTimeFormat().format(dueDateValue)
+        : 'date unavailable';
+      const option = document.createElement('option');
+      option.value = transactionId;
+      option.textContent = `${title} — ${student} — due ${dueDate} — loan ${transactionId.slice(-6)}`;
+      select.append(option);
+    }
+
+    window.onReturnSelectionChange();
+    if (!silent) {
+      setReturnStatus(issuedLoans.length ? `${issuedLoans.length} issued loan${issuedLoans.length === 1 ? '' : 's'} loaded.` : 'No issued loans are available to return.');
+    }
+    return true;
+  } catch (error) {
+    if (!silent) setReturnStatus(error?.message || 'Issued loan records could not be loaded.', 'error-state');
+    return false;
+  } finally {
+    if (refreshButton) {
+      refreshButton.disabled = false;
+      refreshButton.textContent = originalRefreshText || 'Refresh issued loans';
+    }
+  }
 };
 
 window.processReturn = async function() {
-  const bk = document.getElementById('retBookId').value.trim();
-  const cond = document.getElementById('retCondition').value;
-  const btn = document.getElementById('btnProcessReturn');
-  
-  setButtonLoading(btn, true);
+  const select = document.getElementById('returnTransactionId');
+  const button = document.getElementById('btnProcessReturn');
+  const refreshButton = document.getElementById('btnRefreshLoans');
+  const transactionId = select?.value;
+  if (!transactionId) {
+    setReturnStatus('Select an issued loan before processing a return.', 'error-state');
+    return;
+  }
+
+  const originalText = button?.textContent;
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Processing return…';
+  }
+  if (refreshButton) refreshButton.disabled = true;
+
   try {
-    await apiFetch('/library/return', { method: 'POST', body: JSON.stringify({ bookId: bk, condition: cond }) });
-    toast.success('Returned', 'Book returned successfully.');
-  cspSetVisibility(document.getElementById('returnDetails'), false);
-    document.getElementById('retBookId').value = '';
-  } catch(e) { toast.error('Error', e.message); }
-  finally { setButtonLoading(btn, false); }
+    const response = await apiFetch('/library/return', {
+      method: 'POST',
+      body: JSON.stringify({ transactionId }),
+    });
+    if (response?.success !== true || String(response.data?._id) !== String(transactionId) || response.data?.status !== 'Returned') {
+      throw new Error('The server did not confirm this loan return.');
+    }
+
+    await window.loadReturnLoans({ silent: true });
+    setReturnStatus('Return recorded successfully.', 'success-state');
+  } catch (error) {
+    setReturnStatus(error?.message || 'The return could not be completed.', 'error-state');
+  } finally {
+    if (button) {
+      button.textContent = originalText || 'Return selected loan';
+      button.disabled = !select?.value;
+    }
+    if (refreshButton) refreshButton.disabled = false;
+  }
 };
 
 /* ── Catalog ── */
@@ -145,7 +263,7 @@ window.filterCatalog = function() {
     <td><span class="badge badge-secondary">${b.category||'General'}</span></td>
     <td>${b.availableCopies||0} / ${b.totalCopies||0}</td>
     <td>
-      <button class="btn btn-ghost btn-sm" aria-label="Edit book ${b.title}" ${cspActionAttrs("showAlert", ['Edit functionality'], "click", [], [])}><i class="fas fa-edit"></i></button>
+      <button class="btn btn-ghost btn-sm" type="button" aria-label="Edit book ${b.title}" disabled title="Book editing is unavailable"><i class="fas fa-edit"></i></button>
     </td>
   </tr>`).join('');
 };

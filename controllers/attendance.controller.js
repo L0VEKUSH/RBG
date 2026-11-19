@@ -6,11 +6,29 @@ const attendanceService = require('../services/attendance.service');
  * @access  Private (Admin, Faculty)
  */
 exports.markAttendance = async (req, res) => {
-  const result = await attendanceService.markBulkAttendance(req.body, req.user.id);
+  let result;
+  try {
+    result = await attendanceService.markBulkAttendance(req.body, req.user);
+  } catch (error) {
+    if (error.code === 'ATTENDANCE_OUTCOME_UNKNOWN') {
+      return res.status(503).json({
+        success: false,
+        code: error.code,
+        outcome: 'unknown',
+        operationId: error.operationId,
+        message: error.message,
+      });
+    }
+    throw error;
+  }
   res.status(201).json({
     success: true,
     message: 'Attendance marked successfully',
-    data: { modified: result.modifiedCount, upserted: result.upsertedCount },
+    data: {
+      modified: result.modifiedCount,
+      upserted: result.upsertedCount,
+      result,
+    },
   });
 };
 
@@ -20,12 +38,15 @@ exports.markAttendance = async (req, res) => {
  * @access  Private (Admin, Faculty)
  */
 exports.getClassAttendance = async (req, res) => {
-  const { date } = req.query;
-  // Pass only (class, date) — no pageBlock parameter
-  const records = await attendanceService.getClassAttendance(
-    req.params.class, date || new Date()
+  const { date, academicYear, subject } = req.query;
+  const result = await attendanceService.getClassAttendance(
+    req.params.class, date, academicYear, req.user, subject
   );
-  res.status(200).json({ success: true, count: records.length, data: { records } });
+  res.status(200).json({
+    success: true,
+    count: result.records.length,
+    data: { records: result.records, students: result.students },
+  });
 };
 
 /**
@@ -36,7 +57,7 @@ exports.getClassAttendance = async (req, res) => {
 exports.getStudentAttendanceSummary = async (req, res) => {
   const { academicYear } = req.query;
   const summary = await attendanceService.getStudentAttendanceSummary(
-    req.params.studentId, academicYear
+    req.params.studentId, academicYear, req.user
   );
   res.status(200).json({ success: true, data: { summary } });
 };
@@ -50,8 +71,10 @@ exports.getMonthlyAttendance = async (req, res) => {
   const { year, month } = req.query;
   const records = await attendanceService.getMonthlyAttendance(
     req.params.studentId,
-    parseInt(year) || new Date().getFullYear(),
-    parseInt(month) || new Date().getMonth() + 1
+    year,
+    month,
+    req.user,
+    req.query.academicYear
   );
   res.status(200).json({ success: true, count: records.length, data: { records } });
 };
@@ -63,7 +86,7 @@ exports.getMonthlyAttendance = async (req, res) => {
  */
 exports.getClassReport = async (req, res) => {
   const { class: cls, startDate, endDate, academicYear } = req.query;
-  const report = await attendanceService.getClassReport(cls, startDate, endDate, academicYear);
+  const report = await attendanceService.getClassReport(cls, startDate, endDate, academicYear, req.user);
   res.status(200).json({ success: true, data: { report } });
 };
 
@@ -74,20 +97,21 @@ exports.getClassReport = async (req, res) => {
  */
 
 exports.updateAttendance = async (req, res) => {
-
-  // 🔒 HARD SECURITY CHECK
-  if (!['admin', 'faculty'].includes(req.user.role)) {
-    return res.status(403).json({
-      success: false,
-      message: 'Only admin or faculty can update attendance'
-    });
+  let attendance;
+  try {
+    attendance = await attendanceService.updateAttendance(req.params.id, req.body, req.user);
+  } catch (error) {
+    if (error.code === 'ATTENDANCE_OUTCOME_UNKNOWN') {
+      return res.status(503).json({
+        success: false,
+        code: error.code,
+        outcome: 'unknown',
+        operationId: error.operationId,
+        message: error.message,
+      });
+    }
+    throw error;
   }
-
-  const attendance = await attendanceService.updateAttendance(
-    req.params.id,
-    req.body,
-    req.user.id
-  );
 
   res.status(200).json({
     success: true,
@@ -103,7 +127,7 @@ exports.updateAttendance = async (req, res) => {
 exports.getLowAttendance = async (req, res) => {
   const { class: cls, academicYear, threshold } = req.query;
   const students = await attendanceService.getLowAttendanceStudents(
-    cls, academicYear, parseFloat(threshold) || 75
+    cls, academicYear, threshold === undefined ? 75 : Number(threshold), req.user
   );
   res.status(200).json({ success: true, count: students.length, data: { students } });
 };

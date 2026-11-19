@@ -5,4 +5,4 @@ const STAFF_NAV = [
   ]},
   { label: 'Account', items: [{ icon: 'user', text: 'My Profile', panel: 'profile' }] }
 ];
-initPortal({ role: 'staff', expectedRoles: [], navConfig: STAFF_NAV });
+initPortal({ role: 'staff', expectedRoles: ['staff', 'nurse', 'super_admin'], navConfig: STAFF_NAV });

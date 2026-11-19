@@ -1,12 +1,16 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
+const Class = require('../models/Class');
 const { protect } = require('../middleware/auth.middleware');
 const { requireRole } = require('../middleware/authorization.middleware');
+const ErrorResponse = require('../utils/errorResponse');
+const { parseSchoolDate } = require('../utils/attendance-date');
 const {
   applyForAdmission, getAdmissions, getAdmissionStats, getAdmission,
-  updateAdmission, updateAdmissionStatus, admitStudent
+  updateAdmission, updateAdmissionStatus, admitStudent, uploadAdmissionDocument,
 } = require('../controllers/admission.controller');
+const { createSingleUpload, handleMulterError } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -38,10 +42,19 @@ const admissionValidator = [
       return true;
     }),
 
+  body('section').not().exists().withMessage('Class sections are not supported'),
+  body('sections').not().exists().withMessage('Class sections are not supported'),
+
   body('classApplyingFor')
     .notEmpty().withMessage('Class is required')
-    .isIn(['Pre-Nursery', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'])
-    .withMessage('Invalid class value'),
+    .custom((val, { req }) => {
+      try {
+        req.body.classApplyingFor = Class.validateAndNormalizeClassWrite(val, 'classApplyingFor');
+        return true;
+      } catch (err) {
+        throw new Error(err.message);
+      }
+    }),
 
   body('gender')
     .optional()
@@ -112,6 +125,27 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
+function validateAdmissionStatusPayload(req, res, next) {
+  if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+    return next(new ErrorResponse('A valid admission status request is required.', 400));
+  }
+  const allowed = new Set(['status', 'enrollmentEffectiveFrom']);
+  const unexpected = Object.keys(req.body).find(field => !allowed.has(field));
+  if (unexpected) return next(new ErrorResponse(`Unsupported admission status field: ${unexpected}`, 400));
+  if (typeof req.body.status !== 'string') return next(new ErrorResponse('Admission status is required.', 400));
+  if (Object.prototype.hasOwnProperty.call(req.body, 'enrollmentEffectiveFrom')) {
+    if (req.body.status !== 'Approved') {
+      return next(new ErrorResponse('Enrollment date can only be supplied while approving an admission.', 400));
+    }
+    try {
+      parseSchoolDate(req.body.enrollmentEffectiveFrom, 'enrollment effective date');
+    } catch (error) {
+      return next(new ErrorResponse(error.message, 400));
+    }
+  }
+  return next();
+}
+
 // Public admission application route — hardened
 router.post(
   '/apply',
@@ -127,7 +161,8 @@ router.get('/', requireRole('super_admin', 'school_admin', 'principal', 'admissi
 router.get('/stats', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), getAdmissionStats);
 router.get('/:id', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), getAdmission);
 router.put('/:id', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), updateAdmission);
-router.put('/:id/status', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), updateAdmissionStatus);
+router.post('/:id/documents', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), createSingleUpload(['document', 'file'], 'document'), handleMulterError, uploadAdmissionDocument);
+router.put('/:id/status', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), validateAdmissionStatusPayload, updateAdmissionStatus);
 router.post('/:id/admit', requireRole('super_admin', 'school_admin', 'principal', 'admission_officer'), admitStudent);
 
 module.exports = router;

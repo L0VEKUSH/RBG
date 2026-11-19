@@ -112,16 +112,17 @@
             </div>
             <div class="card-body">
               <div class="stats-grid csp-style-5ce7a99075" >
-                <div class="stat-card"><div class="stat-content"><div class="stat-value" id="fcTotal">₹0</div><div class="stat-label">Total Fee</div></div></div>
-                <div class="stat-card"><div class="stat-content"><div class="stat-value csp-style-f83fcad98e" id="fcPaid" >₹0</div><div class="stat-label">Paid</div></div></div>
-                <div class="stat-card"><div class="stat-content"><div class="stat-value csp-style-b83ba24323" id="fcPending" >₹0</div><div class="stat-label">Pending</div></div></div>
+                <div class="stat-card"><div class="stat-content"><div class="stat-value" id="fcTotal">Unavailable</div><div class="stat-label">Total Fee</div></div></div>
+                <div class="stat-card"><div class="stat-content"><div class="stat-value csp-style-f83fcad98e" id="fcPaid" >Unavailable</div><div class="stat-label">Paid</div></div></div>
+                <div class="stat-card"><div class="stat-content"><div class="stat-value csp-style-b83ba24323" id="fcPending" >Unavailable</div><div class="stat-label">Pending</div></div></div>
               </div>
               
               <div class="csp-style-364d04928c">
                 <h4 class="csp-style-7b80e59e07">Record Payment</h4>
                 <div class="form-grid">
-                  <div class="form-group"><label for="fcAmount">Amount to Pay (₹) <span class="required">*</span></label><input type="number" class="form-control" id="fcAmount" placeholder="Amount"></div>
-                  <div class="form-group"><label for="fcMethod">Payment Method <span class="required">*</span></label><select class="form-control" id="fcMethod"><option>Cash</option><option>Card</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select></div>
+                  <div class="form-group"><label for="fcFeeRecord">Fee record <span class="required">*</span></label><select class="form-control" id="fcFeeRecord" data-csp-action-change="selectFeeRecord" data-csp-args-change="%5B%5D"><option value="">Select fee record</option></select></div>
+                  <div class="form-group"><label for="fcAmount">Amount to Pay (₹) <span class="required">*</span></label><input type="number" class="form-control" id="fcAmount" min="0.01" step="0.01" placeholder="Amount"></div>
+                  <div class="form-group"><label for="fcMethod">Payment Method <span class="required">*</span></label><select class="form-control" id="fcMethod"><option value="Cash">Cash</option><option value="Cheque">Cheque</option><option value="Online">Online</option><option value="BankTransfer">Bank Transfer</option></select></div>
                   <div class="form-group csp-style-51377a917e" ><label for="fcRemarks">Remarks (Optional)</label><input type="text" class="form-control" id="fcRemarks" placeholder="Reference number or note"></div>
                 </div>
                 <button class="btn btn-primary" id="btnProcessPayment" data-csp-action-click="processPayment" data-csp-args-click="%5B%5D"><i class="fas fa-check-circle"></i> Process Payment</button>

@@ -1,8 +1,7 @@
 // Role Specific Logic for principal.html
 const currentUser = JSON.parse(localStorage.getItem('user'));
-const token = localStorage.getItem('token');
 
-if (!token || !currentUser) {
+if (!currentUser) {
     window.location.href = 'login.html';
 }
 
@@ -23,7 +22,7 @@ document.getElementById('userRole').textContent = currentUser.normalizedRole || 
 async function fetchDashboardData() {
     try {
         const res = await fetch('/api/v1/dashboard/principal', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            credentials: 'include'
         });
         const data = await res.json();
         if (data.success) {

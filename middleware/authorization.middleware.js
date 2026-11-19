@@ -135,6 +135,12 @@ exports.requireOwnership = (modelName, resourceIdParam = 'id') => {
       
       if (!resourceId) return next(); // If no ID is provided, nothing to check ownership against here.
 
+      if (req.user.role === 'parent' && modelName === 'Parent') {
+        const ownedParent = await Parent.exists({ _id: resourceId, user: req.user._id });
+        if (!ownedParent) return next(new ErrorResponse('Parent not found', 404));
+        return next();
+      }
+
       // If user is a student, verify if the ID matches their student ID
       if (req.user.role === 'student') {
         const student = await Student.findOne({ user: req.user._id });
@@ -220,6 +226,67 @@ exports.requireClassAccess = (classParam = 'class') => {
       next();
     } catch (error) {
       next(error);
+    }
+  };
+};
+
+/**
+ * Homework-specific coarse class gate. The service applies the final ownership,
+ * academic-year, and subject filters; this middleware also accepts both current
+ * Parent.children and legacy Student.parentUser relationships.
+ */
+exports.requireHomeworkClassAccess = (classParam = 'class') => {
+  return async (req, res, next) => {
+    if (!req.user) return next(new ErrorResponse('Not authenticated', 401));
+    const role = String(req.user.role || '').toLowerCase();
+    if (['super_admin', 'school_admin', 'admin'].includes(role)) return next();
+
+    try {
+      const classLevel = req.params[classParam] || req.body?.[classParam] || req.query?.[classParam];
+      if (!classLevel) return next(new ErrorResponse('Homework not found', 404));
+
+      if (role === 'student') {
+        const student = await Student.findOne({
+          user: req.user._id,
+          class: String(classLevel),
+          isActive: { $ne: false },
+        });
+        if (!student) return next(new ErrorResponse('Homework not found', 404));
+        return next();
+      }
+
+      if (role === 'parent') {
+        const parent = await Parent.findOne({ user: req.user._id });
+        const childIds = Array.isArray(parent?.children)
+          ? parent.children.map(child => child && child._id ? child._id : child).filter(Boolean)
+          : [];
+        const linkedChild = await Student.findOne({
+          class: String(classLevel),
+          isActive: { $ne: false },
+          $or: [
+            { _id: { $in: childIds } },
+            { parentUser: req.user._id },
+          ],
+        });
+        if (!linkedChild) return next(new ErrorResponse('Homework not found', 404));
+        return next();
+      }
+
+      if (['teacher', 'class_teacher', 'faculty'].includes(role)) {
+        const faculty = await Faculty.findOne({ user: req.user._id, isActive: { $ne: false } });
+        if (!faculty) return next(new ErrorResponse('Homework not found', 404));
+        const classTeacher = faculty.classTeacherOf || {};
+        const isClassTeacher = String(classTeacher.class || '') === String(classLevel) && Boolean(classTeacher.academicYear);
+        const allocations = await SubjectAllocation.find({ teacher: faculty._id, class: String(classLevel) });
+        if (!isClassTeacher && !(allocations || []).length) {
+          return next(new ErrorResponse('Homework not found', 404));
+        }
+        return next();
+      }
+
+      return next(new ErrorResponse('Not authorized to access homework', 403));
+    } catch (error) {
+      return next(error);
     }
   };
 };

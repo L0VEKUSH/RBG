@@ -54,6 +54,8 @@ console.log('✓ Production short secret rejected');
 // 5. Production localhost MONGO_URI throws
 process.env.NODE_ENV = 'production';
 process.env.JWT_SECRET = 'a_very_strong_production_secret_key_that_is_32_chars_long';
+process.env.REDIS_URL = 'redis://127.0.0.1:6379';
+process.env.EMAIL_ENCRYPTION_KEY = 'synthetic-email-key-for-config-test-2026';
 process.env.MONGO_URI = 'mongodb://localhost:27017/school_management_db';
 threw = false;
 try {
@@ -67,6 +69,9 @@ assert(threw, 'Should throw if MONGO_URI is localhost in production');
 console.log('✓ Production localhost MONGO_URI rejected');
 
 // 6. Production valid config succeeds
+process.env.CORS_ORIGIN = 'https://rbgschool.example';
+process.env.EMAIL_ENCRYPTION_KEY = 'synthetic-email-key-for-config-test-2026';
+process.env.REDIS_URL = 'redis://127.0.0.1:6379';
 process.env.NODE_ENV = 'production';
 process.env.JWT_SECRET = 'a_very_strong_production_secret_key_that_is_32_chars_long';
 process.env.MONGO_URI = 'mongodb+srv://user:pass@cluster.mongodb.net/school_management_db';
@@ -75,8 +80,23 @@ env = require('../config/env');
 assert.strictEqual(env.NODE_ENV, 'production');
 console.log('✓ Production valid config accepted');
 
+for (const corsOrigin of ['', '*', 'http://rbgschool.example', 'not-an-origin']) {
+  process.env.CORS_ORIGIN = corsOrigin;
+  threw = false;
+  try {
+    delete require.cache[require.resolve('../config/env')];
+    require('../config/env');
+  } catch (e) {
+    threw = true;
+    assert(e.message.includes('CORS_ORIGIN'));
+  }
+  assert(threw, `Production CORS allowlist should reject: ${corsOrigin || '<missing>'}`);
+}
+console.log('✓ Production CORS allowlist fails closed');
+
 // Reset to development
 process.env.NODE_ENV = 'development';
+process.env.CORS_ORIGIN = 'http://localhost:5000';
 delete require.cache[require.resolve('../config/env')];
 require('../config/env');
 

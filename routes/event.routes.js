@@ -1,5 +1,5 @@
 const express = require('express');
-const { protect } = require('../middleware/auth.middleware');
+const { protect, optionalProtect } = require('../middleware/auth.middleware');
 const { requireRole, requirePermission, requireOwnership, requireClassAccess } = require('../middleware/authorization.middleware');
 const { 
     getPublicEvents, getUpcomingEvents, getEvents, createEvent,
@@ -8,7 +8,7 @@ const {
 
 const router = express.Router();
 
-router.get('/public', getPublicEvents);
+router.get('/public', optionalProtect, getPublicEvents);
 
 router.use(protect);
 router.get('/upcoming', getUpcomingEvents);

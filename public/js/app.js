@@ -6,7 +6,6 @@
 
 const API_BASE = window.location.origin + '/api/v1';
 let currentUser = null;
-let authToken = null;
 let allStudents = [], allFaculty = [], allNotices = [];
 let chartsInitialized = false;
 
@@ -23,14 +22,8 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
    if (res.success) {
   // login response handled
 
-  authToken = res.data?.token || res.token;   // ✅ fallback safe
   currentUser = res.data?.user || res.user;
-
-  if (!authToken) {
-    throw new Error("Token not received from server");
-  }
-
-      localStorage.setItem('cms_token', authToken);
+      if (!currentUser) throw new Error('Authentication error. No user received.');
       localStorage.setItem('cms_user', JSON.stringify(currentUser));
       if (document.getElementById('rememberMe').checked) {
         localStorage.setItem('cms_remember', '1');
@@ -69,11 +62,17 @@ function togglePass() {
   else { inp.type = 'password'; ico.className = 'fas fa-eye'; }
 }
 
-function logout() {
+async function logout() {
   if (!confirm('Are you sure you want to logout?')) return;
-  localStorage.removeItem('cms_token');
+  try {
+    const response = await apiFetch('/auth/logout', 'POST');
+    if (!response.success) throw new Error('Logout failed. Please try again.');
+  } catch (error) {
+    showToast(error.message || 'Logout failed. Please try again.', 'error');
+    return;
+  }
   localStorage.removeItem('cms_user');
-  authToken = null; currentUser = null;
+  currentUser = null;
   document.getElementById('mainApp').classList.add('hidden');
   document.getElementById('loginPage').classList.remove('hidden');
   showToast('Logged out successfully.', 'success');
@@ -264,15 +263,9 @@ function toggleSidebar() {
 /* ════════════════ API HELPER ════════════════ */
 
 async function apiFetch(endpoint, method = 'GET', body = null) {
-  const token = authToken || localStorage.getItem('cms_token');
-
   const headers = {
     'Content-Type': 'application/json'
   };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
 
   const config = {
     method,
@@ -1118,15 +1111,12 @@ function loginSuccess(user) {
 /* ════════════════ AUTO-LOGIN ════════════════ */
 
 window.addEventListener('DOMContentLoaded', () => {
-  const savedToken = localStorage.getItem('cms_token');
   const savedUser = localStorage.getItem('cms_user');
-  if (savedToken && savedUser) {
+  if (savedUser) {
     try {
-      authToken = savedToken;
       currentUser = JSON.parse(savedUser);
       initApp();
     } catch (_) {
-      localStorage.removeItem('cms_token');
       localStorage.removeItem('cms_user');
     }
   }
@@ -1157,6 +1147,3 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
-
-

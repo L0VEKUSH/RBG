@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const paymentSchema = new mongoose.Schema({
   studentFee: {
@@ -14,7 +15,7 @@ const paymentSchema = new mongoose.Schema({
   amount: {
     type: Number,
     required: true,
-    min: 0
+    min: 0.01
   },
   method: {
     type: String,
@@ -25,13 +26,20 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     unique: true
   },
+  idempotencyKey: {
+    type: String,
+    required: true,
+    trim: true,
+    select: false
+  },
   date: {
     type: Date,
     default: Date.now
   },
   receivedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    required: true
   },
   remarks: String,
   academicYear: String
@@ -41,13 +49,13 @@ const paymentSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-paymentSchema.pre('save', async function(next) {
+paymentSchema.pre('save', function() {
   if (this.isNew && !this.receiptNumber) {
-    const count = await mongoose.model('Payment').countDocuments();
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    this.receiptNumber = `REC-${dateStr}-${(count + 1).toString().padStart(4, '0')}`;
+    this.receiptNumber = `REC-${dateStr}-${crypto.randomBytes(12).toString('hex').toUpperCase()}`;
   }
-  next();
 });
+
+paymentSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Payment', paymentSchema);

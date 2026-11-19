@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Class = require('./Class');
 
 const CLASS_LEVELS = [
   'Pre-Nursery', 'Nursery', 'LKG', 'UKG',
@@ -129,6 +130,52 @@ FacultySchema.virtual('totalSalary').get(function () {
   return basic + hra + da + allowances - deductions;
 });
 
+FacultySchema.virtual('section').set(function () {
+  this.invalidate('section', 'Class sections are not supported. RBG School ERP models single undivided classes per level.');
+});
+FacultySchema.virtual('sections').set(function () {
+  this.invalidate('sections', 'Class sections are not supported. RBG School ERP models single undivided classes per level.');
+});
+
+// Pre-validate hook enforcing canonical classes, alias normalization, and no sections
+FacultySchema.pre('validate', function (next) {
+  if (this.section || this.sections) {
+    this.invalidate('section', 'Class sections are not supported. RBG School ERP models single undivided classes per level.');
+  }
+
+  if (this.isModified('classTeacherOf') || this.isNew) {
+    if (this.classTeacherOf && this.classTeacherOf.class) {
+      try {
+        this.classTeacherOf.class = Class.validateAndNormalizeClassWrite(this.classTeacherOf.class, 'classTeacherOf.class');
+      } catch (err) {
+        this.invalidate('classTeacherOf.class', err.message);
+        return next();
+      }
+    }
+  }
+
+  if (this.isModified('subjects') || this.isNew) {
+    if (Array.isArray(this.subjects)) {
+      for (const sub of this.subjects) {
+        if (Array.isArray(sub.classes)) {
+          const normalized = [];
+          for (const cls of sub.classes) {
+            try {
+              normalized.push(Class.validateAndNormalizeClassWrite(cls, 'subject class'));
+            } catch (err) {
+              this.invalidate('subjects', err.message);
+              return next();
+            }
+          }
+          sub.classes = normalized;
+        }
+      }
+    }
+  }
+
+  next();
+});
+
 // Auto generate employee ID
 FacultySchema.pre('save', async function (next) {
   if (this.isNew && !this.employeeId) {
@@ -141,5 +188,8 @@ FacultySchema.pre('save', async function (next) {
 
 FacultySchema.index({ department: 1 });
 FacultySchema.index({ 'classTeacherOf.class': 1 });
+
+FacultySchema.statics.CLASS_LEVELS = CLASS_LEVELS;
+FacultySchema.statics.CANONICAL_CLASS_LEVELS = Class.CANONICAL_CLASS_LEVELS;
 
 module.exports = mongoose.model('Faculty', FacultySchema);

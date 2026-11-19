@@ -9,10 +9,8 @@ const { JWT_SECRET } = require('../config/env');
 const protect = async (req, res, next) => {
   let token;
 
-  // Extract token from Authorization header or cookie
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies && req.cookies.token) {
+  // Authentication is intentionally cookie-only; the browser never handles JWTs.
+  if (req.cookies && req.cookies.token) {
     token = req.cookies.token;
   }
 
@@ -32,6 +30,10 @@ const protect = async (req, res, next) => {
       return next(new ErrorResponse('Your account has been deactivated. Contact admin.', 403));
     }
 
+    if ((decoded.tokenVersion || 0) !== (user.tokenVersion || 0)) {
+      return next(new ErrorResponse('Invalid token.', 401));
+    }
+
     req.user = user;
     next();
   } catch (error) {
@@ -45,4 +47,11 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+// Public content routes may personalize visibility when a valid session cookie
+// is present, while still allowing anonymous requests.
+const optionalProtect = (req, res, next) => {
+  if (!req.cookies || !req.cookies.token) return next();
+  return protect(req, res, next);
+};
+
+module.exports = { protect, optionalProtect };

@@ -28,7 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.getElementById('nav-links');
     if (mobileMenuBtn && navLinks) {
         mobileMenuBtn.addEventListener('click', () => {
-            navLinks.classList.toggle('show');
+            const isOpen = navLinks.classList.toggle('show');
+            mobileMenuBtn.setAttribute('aria-expanded', String(isOpen));
         });
     }
 
@@ -52,36 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Animated Counters ---
-    const counters = document.querySelectorAll('.counter');
-    if(counters.length > 0) {
-        const counterObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if(entry.isIntersecting) {
-                    const counter = entry.target;
-                    const target = +counter.getAttribute('data-target');
-                    const duration = 2000;
-                    const increment = target / (duration / 16);
-                    let current = 0;
-                    
-                    const updateCounter = () => {
-                        current += increment;
-                        if(current < target) {
-                            counter.innerText = Math.ceil(current);
-                            requestAnimationFrame(updateCounter);
-                        } else {
-                            counter.innerText = target;
-                        }
-                    };
-                    updateCounter();
-                    observer.unobserve(counter);
-                }
-            });
-        }, { threshold: 0.5 });
-        
-        counters.forEach(counter => counterObserver.observe(counter));
-    }
-
     // --- Fetch Notices ---
     const homeNoticesList = document.getElementById('home-notices-list');
     if (homeNoticesList) {
@@ -91,21 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return res.json();
             })
             .then(data => {
-                if (data.success && data.data && data.data.length > 0) {
-                    renderNotices(data.data, homeNoticesList);
-                } else {
-                    throw new Error('No notices');
-                }
+                if (data.success && Array.isArray(data.data)) renderNotices(data.data, homeNoticesList);
+                else showUnavailable(homeNoticesList, 'Notices are unavailable.');
             })
-            .catch(err => {
-                // Fallback to static
-                const staticNotices = [
-                    { title: "Admissions Open for 2026-27", date: new Date().toISOString(), type: "Admission" },
-                    { title: "Parent-Teacher Meeting for Class X", date: new Date(Date.now() + 86400000*3).toISOString(), type: "Academic" },
-                    { title: "Annual Sports Day Schedule", date: new Date(Date.now() + 86400000*7).toISOString(), type: "Events" }
-                ];
-                renderNotices(staticNotices, homeNoticesList);
-            });
+            .catch(() => showUnavailable(homeNoticesList, 'Notices could not be loaded.'));
     }
 
     // --- Fetch Events ---
@@ -117,25 +77,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 return res.json();
             })
             .then(data => {
-                if (data.success && data.data && data.data.length > 0) {
-                    renderEvents(data.data.slice(0,3), homeEventsList);
-                } else {
-                    throw new Error('No events');
-                }
+                if (data.success && Array.isArray(data.data)) renderEvents(data.data.slice(0, 3), homeEventsList);
+                else showUnavailable(homeEventsList, 'Events are unavailable.');
             })
-            .catch(err => {
-                // Fallback
-                const staticEvents = [
-                    { title: "Science Exhibition", startDate: new Date(Date.now() + 86400000*5).toISOString(), description: "Annual science exhibition by middle school." },
-                    { title: "Inter-School Debate", startDate: new Date(Date.now() + 86400000*12).toISOString(), description: "Debate competition for secondary section." }
-                ];
-                renderEvents(staticEvents, homeEventsList);
-            });
+            .catch(() => showUnavailable(homeEventsList, 'Events could not be loaded.'));
     }
 
     // Helpers
     function renderNotices(notices, container) {
         container.innerHTML = '';
+        if (!notices.length) return showUnavailable(container, 'No published notices.');
         notices.forEach(notice => {
             const date = new Date(notice.date || notice.createdAt);
             const html = `
@@ -156,8 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderEvents(events, container) {
         container.innerHTML = '';
+        if (!events.length) return showUnavailable(container, 'No upcoming events.');
         events.forEach(ev => {
             const date = new Date(ev.startDate || ev.date);
+            const description = typeof ev.description === 'string' ? ev.description.trim() : '';
+            const summary = description.length > 50 ? `${description.substring(0, 50)}...` : description;
             const html = `
                 <div class="list-item">
                     <div class="date-box">
@@ -166,11 +120,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="item-content">
                         <h4>${ev.title}</h4>
-                        <p>${ev.description ? ev.description.substring(0, 50) + '...' : 'School Event'}</p>
+                        ${summary ? `<p>${summary}</p>` : ''}
                     </div>
                 </div>
             `;
             container.innerHTML += html;
         });
+    }
+
+    function showUnavailable(container, message) {
+        container.textContent = '';
+        const state = document.createElement('p');
+        state.className = 'empty-state';
+        state.textContent = message;
+        container.appendChild(state);
     }
 });

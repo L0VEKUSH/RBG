@@ -1,0 +1,303 @@
+﻿:root {
+  --portal-ink: #20223a;
+  --portal-muted: #60647a;
+  --portal-border: #e3e5ef;
+  --portal-purple: #4c3b91;
+  --portal-purple-dark: #38286f;
+  --portal-lilac: #f1effa;
+  --portal-error: #a32935;
+  --portal-error-bg: #fff1f1;
+}
+
+body.portal-login-page {
+  display: block;
+  min-height: 100vh;
+  padding: clamp(1rem, 4vw, 3.25rem) 1rem 1.5rem;
+  background:
+    radial-gradient(ellipse at top left, rgba(111, 91, 181, .12), transparent 34rem),
+    #f7f7fb;
+  color: var(--portal-ink);
+  font-family: Inter, Arial, sans-serif;
+}
+
+.portal-auth-shell {
+  width: min(100%, 920px);
+  margin: 0 auto;
+}
+
+.school-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+  margin: 0 0 1.5rem .25rem;
+  color: var(--portal-ink);
+  text-decoration: none;
+}
+
+.school-brand-mark {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  border-radius: .9rem;
+  background: var(--portal-purple);
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.school-brand-name {
+  font-family: Poppins, Inter, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.portal-selection,
+.login-panel {
+  padding: clamp(1.25rem, 4vw, 2.75rem);
+  border: 1px solid var(--portal-border);
+  border-radius: 1.5rem;
+  background: #fff;
+  box-shadow: 0 1.5rem 4rem rgba(36, 30, 73, .09);
+}
+
+.portal-selection h1,
+.login-panel h1 {
+  margin: .25rem 0 .5rem;
+  color: var(--portal-ink);
+  font-family: Poppins, Inter, sans-serif;
+  font-size: clamp(1.7rem, 4vw, 2.25rem);
+  line-height: 1.2;
+  letter-spacing: -.035em;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--portal-purple);
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.section-intro {
+  margin: 0 0 1.75rem;
+  color: var(--portal-muted);
+  font-size: .98rem;
+  line-height: 1.6;
+}
+
+.portal-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .8rem;
+}
+
+.portal-card {
+  display: flex;
+  min-width: 0;
+  min-height: 5.4rem;
+  align-items: center;
+  gap: .9rem;
+  padding: 1rem;
+  border: 1px solid var(--portal-border);
+  border-radius: 1rem;
+  background: #fff;
+  color: var(--portal-ink);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.portal-card:hover {
+  transform: translateY(-2px);
+  border-color: #b8aedc;
+  background: #fcfbff;
+  box-shadow: 0 .6rem 1.4rem rgba(50, 39, 99, .08);
+}
+
+.portal-card:focus-visible,
+.back-button:focus-visible,
+.password-toggle:focus-visible,
+.text-button:focus-visible,
+.submit-button:focus-visible,
+.school-brand:focus-visible {
+  outline: 3px solid #7865c5;
+  outline-offset: 3px;
+}
+
+.portal-card-icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 2.75rem;
+  place-items: center;
+  border-radius: .85rem;
+  background: var(--portal-lilac);
+  color: var(--portal-purple-dark);
+  font-size: 1.05rem;
+}
+
+.portal-card-copy {
+  display: grid;
+  min-width: 0;
+  gap: .22rem;
+}
+
+.portal-card-title {
+  font-size: .96rem;
+  font-weight: 700;
+}
+
+.portal-card-description {
+  color: var(--portal-muted);
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+.portal-card-arrow {
+  margin-left: auto;
+  color: #77718f;
+  font-size: .8rem;
+}
+
+.portal-card-other {
+  grid-column: 1 / -1;
+  background: #faf9fd;
+}
+
+.login-panel {
+  width: min(100%, 560px);
+  margin: 0 auto;
+}
+
+.back-button,
+.text-button {
+  padding: .25rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--portal-purple-dark);
+  cursor: pointer;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  margin: 0 0 1.75rem;
+}
+
+.login-panel .eyebrow { margin-bottom: .25rem; }
+.login-panel .section-intro { margin-bottom: 1.5rem; }
+
+.login-error {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  margin: 0 0 1.25rem;
+  padding: .9rem 1rem;
+  border: 1px solid #efc3c6;
+  border-radius: .8rem;
+  background: var(--portal-error-bg);
+  color: var(--portal-error);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+
+[hidden] { display: none !important; }
+
+.form-group { margin: 0 0 1.1rem; }
+.form-group label {
+  display: block;
+  margin: 0 0 .42rem;
+  color: var(--portal-ink);
+  font-size: .87rem;
+  font-weight: 700;
+}
+
+.form-control {
+  width: 100%;
+  min-height: 3.1rem;
+  padding: .75rem .9rem;
+  border: 1px solid #cfd1df;
+  border-radius: .75rem;
+  background: #fff;
+  color: var(--portal-ink);
+  font: inherit;
+  font-size: .95rem;
+}
+
+.form-control:focus {
+  border-color: var(--portal-purple);
+  outline: 3px solid rgba(76, 59, 145, .16);
+}
+
+.password-field { position: relative; }
+.password-field .form-control { padding-right: 3.25rem; }
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: .6rem;
+  display: grid;
+  width: 2.2rem;
+  height: 2.2rem;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 0;
+  border-radius: .55rem;
+  background: transparent;
+  color: var(--portal-muted);
+  cursor: pointer;
+}
+
+.recovery-row { display: flex; justify-content: flex-end; margin: -.15rem 0 .7rem; }
+.recovery-status {
+  margin: 0 0 1rem;
+  color: var(--portal-muted);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+.recovery-status[data-state="error"] { color: var(--portal-error); }
+
+.submit-button {
+  display: flex;
+  width: 100%;
+  min-height: 3.15rem;
+  align-items: center;
+  justify-content: center;
+  gap: .65rem;
+  margin-top: .35rem;
+  padding: .8rem 1rem;
+  border: 0;
+  border-radius: .75rem;
+  background: var(--portal-purple);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  transition: background .18s ease;
+}
+.submit-button:hover { background: var(--portal-purple-dark); }
+.submit-button:disabled { cursor: wait; opacity: .72; }
+
+.portal-footer {
+  padding: 1.35rem .5rem 0;
+  color: #73758a;
+  font-size: .78rem;
+  text-align: center;
+}
+
+@media (max-width: 620px) {
+  body.portal-login-page { padding: 1rem .75rem 1.2rem; }
+  .school-brand { margin-bottom: 1rem; }
+  .portal-selection, .login-panel { border-radius: 1.1rem; }
+  .portal-card-grid { grid-template-columns: minmax(0, 1fr); }
+  .portal-card-other { grid-column: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const paymentRecordSchema = new mongoose.Schema({
-  amount: Number,
+  amount: { type: Number, min: 0.01 },
   date: Date,
   method: {
     type: String,
@@ -16,6 +16,9 @@ const paymentRecordSchema = new mongoose.Schema({
 });
 
 const studentFeeSchema = new mongoose.Schema({
+  admissionSagaId: { type: String, select: false },
+  admissionSagaGeneration: { type: Number, select: false },
+  admissionSagaOwnership: { type: String, enum: ['owned', 'shared'], select: false },
   student: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
@@ -66,5 +69,6 @@ studentFeeSchema.virtual('balanceDue').get(function() {
 });
 
 studentFeeSchema.index({ student: 1, academicYear: 1 });
+studentFeeSchema.index({ admissionSagaId: 1, admissionSagaGeneration: 1 }, { sparse: true });
 
 module.exports = mongoose.model('StudentFee', studentFeeSchema);

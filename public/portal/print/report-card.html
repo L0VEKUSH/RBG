@@ -8,15 +8,17 @@
     <script src="/js/print-templates.js"></script>
 </head>
 <body class="report-card-body">
-    <button type="button" class="no-print btn-print btn-print-blue" aria-label="Print Student Report Card">Print</button>
+    <button type="button" class="no-print btn-print btn-print-blue" id="reportCardPrint" aria-label="Print Student Report Card" disabled>Print</button>
     <div class="page report-card-page" id="reportCardContent">
         <header class="report-card-header">
             <h1>RBG School</h1>
-            <div class="school-info">123 Education Lane, Knowledge City, Country 45678</div>
-            <div class="school-info">Phone: +1 234 567 8900 | Email: info@sunrisepublicschool.com</div>
+            <div class="school-info">Nagla Dhak Aligarh 202002</div>
+            <div class="school-info">Phone: 9105649342 | Email: avengeniuswarrior@gmail.com</div>
             <h2 class="heading-report">Student Report Card</h2>
-            <div class="fs-14">Academic Year: <span id="academicYear">2025-2026</span></div>
+            <div class="fs-14">Academic Year: <span id="academicYear">Loading...</span></div>
         </header>
+
+        <p class="no-print" id="reportCardStatus" role="status" aria-live="polite">Loading your report card...</p>
 
         <div class="student-info report-student-info">
             <div>
@@ -34,10 +36,10 @@
         <table class="report-table">
             <thead>
                 <tr>
+                    <th>Exam / Year</th>
                     <th>Subject</th>
-                    <th>Term 1 (50)</th>
-                    <th>Term 2 (50)</th>
-                    <th>Total (100)</th>
+                    <th>Max Marks</th>
+                    <th>Obtained</th>
                     <th>Grade</th>
                 </tr>
             </thead>

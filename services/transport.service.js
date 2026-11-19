@@ -1,6 +1,7 @@
 const TransportBus = require('../models/Bus');
 const TransportRoute = require('../models/Route');
 const Student = require('../models/Student');
+const { assertStudentAccess } = require('./student-access.service');
 
 exports.getBuses = async () => {
     return await TransportBus.find();
@@ -30,7 +31,8 @@ exports.assignStudent = async (studentId, routeId, busId) => {
     return await Student.findByIdAndUpdate(studentId, { transportRoute: routeId, transportBus: busId }, { new: true });
 };
 
-exports.getStudentTransport = async (studentId) => {
+exports.getStudentTransport = async (studentId, user) => {
+    await assertStudentAccess(user, studentId);
     return await Student.findById(studentId).select('transportRoute transportBus').populate('transportRoute').populate('transportBus');
 };
 

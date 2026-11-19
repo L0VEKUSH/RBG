@@ -2,6 +2,7 @@ const Marks = require('../models/Marks');
 const Student = require('../models/Student');
 const ErrorResponse = require('../utils/errorResponse');
 const logger = require('../utils/logger');
+const marksService = require('../services/marks.service');
 
 /**
  * @desc    Add/update marks for a student
@@ -9,24 +10,13 @@ const logger = require('../utils/logger');
  * @access  Private (Admin, Faculty)
  */
 exports.addMarks = async (req, res) => {
-  const existing = await Marks.findOne({
-    student: req.body.student,
-    examType: req.body.examType,
-    academicYear: req.body.academicYear,
+  const { record, created } = await marksService.addOrUpdateMarks(req.body, req.user);
+  logger.info(`Marks ${created ? 'added' : 'updated'} for student ${record.student}, exam: ${record.examType}`);
+  res.status(created ? 201 : 200).json({
+    success: true,
+    message: created ? 'Marks added successfully' : 'Marks updated',
+    data: { marks: record },
   });
-
-  if (existing) {
-    existing.subjects = req.body.subjects;
-    existing.class = req.body.class;
-    existing.markedBy = req.user.id;
-    if (req.body.isPublished !== undefined) existing.isPublished = req.body.isPublished;
-    await existing.save();
-    return res.status(200).json({ success: true, message: 'Marks updated', data: { marks: existing } });
-  }
-
-  const marks = await Marks.create({ ...req.body, markedBy: req.user.id });
-  logger.info(`Marks added for student ${req.body.student}, exam: ${req.body.examType}`);
-  res.status(201).json({ success: true, message: 'Marks added successfully', data: { marks } });
 };
 
 /**
@@ -73,12 +63,22 @@ exports.getStudentMarks = async (req, res) => {
 
 /**
  * @desc    Get class marks for an exam
- * @route   GET /api/v1/marks/class
+ * @route   GET /api/v1/marks/class/:class
  * @access  Private (Admin, Faculty)
  */
 exports.getClassMarks = async (req, res) => {
-  const { class: cls, examType, academicYear } = req.query;
-  const marks = await Marks.find({ class: cls, examType, academicYear, isPublished: true })
+  const rawClass = req.params?.class ?? req.query?.class;
+  const cls = typeof rawClass === 'string' ? rawClass.trim() : '';
+  if (!cls) {
+    throw new ErrorResponse('Class is required', 400);
+  }
+
+  const { examType, academicYear } = req.query || {};
+  const query = { class: cls, isPublished: true };
+  if (examType) query.examType = examType;
+  if (academicYear) query.academicYear = academicYear;
+
+  const marks = await Marks.find(query)
     .populate({ path: 'student', populate: { path: 'user', select: 'name' } })
     .sort('rank');
 
@@ -92,9 +92,10 @@ exports.getClassMarks = async (req, res) => {
  */
 exports.publishMarks = async (req, res) => {
   const { class: cls, examType, academicYear } = req.body;
+  if (!cls || !examType || !academicYear) throw new ErrorResponse('Class, exam type, and academic year are required', 400);
   const result = await Marks.updateMany(
-    { class: cls, examType, academicYear },
-    { isPublished: true, publishedAt: new Date() }
+    { class: cls, examType, academicYear, isPublished: false },
+    { isPublished: true, publishedAt: new Date(), publishedBy: req.user._id }
   );
   res.status(200).json({
     success: true,
@@ -129,7 +130,14 @@ exports.getMyMarks = async (req, res) => {
   const student = await Student.findOne({ user: req.user.id });
   if (!student) throw new ErrorResponse('Student profile not found', 404);
 
-  const marks = await Marks.find({ student: student._id, isPublished: true })
+  const query = { student: student._id, isPublished: true };
+  if (typeof req.query.examType === 'string' && req.query.examType.trim()) {
+    query.examType = req.query.examType;
+  }
+  if (typeof req.query.academicYear === 'string' && /^\d{4}-\d{4}$/.test(req.query.academicYear)) {
+    query.academicYear = req.query.academicYear;
+  }
+  const marks = await Marks.find(query)
     .sort('-createdAt');
   res.status(200).json({ success: true, count: marks.length, data: { marks } });
 };

@@ -56,11 +56,18 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('profileBigAvatar').textContent = firstName;
       document.getElementById('profileName').textContent = user.name || 'User';
       if (!config.endpoint) return;
-      const response = await apiFetch(config.endpoint);
-      if (!response?.success) return;
-      for (const [elementId, field, fallback = 0] of config.stats) {
-        const element = document.getElementById(elementId);
-        if (element) element.textContent = response.data[field] ?? fallback;
+      try {
+        const response = await apiFetch(config.endpoint);
+        if (!response?.success || !response.data) throw new Error('Dashboard data is unavailable.');
+        for (const [elementId, field] of config.stats) {
+          const element = document.getElementById(elementId);
+          if (element) element.textContent = response.data[field] ?? 'Unavailable';
+        }
+      } catch (error) {
+        for (const [elementId] of config.stats) {
+          const element = document.getElementById(elementId);
+          if (element) element.textContent = 'Unavailable';
+        }
       }
     }
   });

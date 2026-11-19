@@ -1,4 +1,20 @@
 const { body } = require('express-validator');
+const ErrorResponse = require('../utils/errorResponse');
+
+const REGISTER_FIELDS = new Set([
+  'name', 'email', 'password', 'phone', 'gender', 'dateOfBirth', 'address',
+]);
+
+const rejectUnexpectedRegistrationFields = (req, res, next) => {
+  const bodyFields = req.body && typeof req.body === 'object' && !Array.isArray(req.body)
+    ? Object.keys(req.body)
+    : [];
+  const unexpectedFields = bodyFields.filter((field) => !REGISTER_FIELDS.has(field));
+  if (unexpectedFields.length) {
+    return next(new ErrorResponse('Unexpected registration field.', 400));
+  }
+  return next();
+};
 
 const registerValidation = [
   body('name')
@@ -15,10 +31,6 @@ const registerValidation = [
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage('Password must contain uppercase, lowercase and a number'),
-  body('role')
-    .optional()
-    .isIn(['admin', 'faculty', 'student', 'parent'])
-    .withMessage('Invalid role'),
 ];
 
 const loginValidation = [
@@ -48,6 +60,18 @@ const forgotPasswordValidation = [
 ];
 
 const resetPasswordValidation = [
+  body('token')
+    .trim().matches(/^[a-f0-9]{64}$/i).withMessage('A valid token is required'),
+  body('password')
+    .notEmpty().withMessage('Password is required')
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage('Password must contain uppercase, lowercase and a number'),
+];
+
+const activationValidation = [
+  body('token')
+    .trim().matches(/^[a-f0-9]{64}$/i).withMessage('A valid token is required'),
   body('password')
     .notEmpty().withMessage('Password is required')
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
@@ -57,8 +81,10 @@ const resetPasswordValidation = [
 
 module.exports = {
   registerValidation,
+  rejectUnexpectedRegistrationFields,
   loginValidation,
   changePasswordValidation,
   forgotPasswordValidation,
   resetPasswordValidation,
+  activationValidation,
 };

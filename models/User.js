@@ -82,8 +82,21 @@ const UserSchema = new mongoose.Schema(
     },
     emailVerificationToken: String,
     emailVerificationExpire: Date,
+    activationToken: String,
+    activationTokenExpire: Date,
+    activationTokenSagaId: { type: String, select: false },
+    activationTokenSagaGeneration: { type: Number, select: false },
+    admissionSagaId: { type: String, select: false },
+    admissionSagaGeneration: { type: Number, select: false },
+    admissionSagaOwnership: { type: String, enum: ['owned', 'shared'], select: false },
+    accountInvitationType: { type: String, enum: ['student', 'teacher'], select: false },
+    accountInvitationFingerprint: { type: String, select: false },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
     lastLogin: Date,
     loginAttempts: {
       type: Number,
@@ -127,10 +140,23 @@ UserSchema.methods.getEmailVerificationToken = function () {
   return token;
 };
 
+UserSchema.methods.getActivationToken = function () {
+  const token = crypto.randomBytes(32).toString('hex');
+  this.activationToken = crypto.createHash('sha256').update(token).digest('hex');
+  this.activationTokenExpire = Date.now() + 24 * 60 * 60 * 1000;
+  return token;
+};
+
 // Check if account is locked
 UserSchema.virtual('isLocked').get(function () {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });
+
+// Token lookups are public endpoint entry points; sparse indexes avoid indexing
+// users who do not currently have an activation or reset token.
+UserSchema.index({ activationToken: 1 }, { sparse: true });
+UserSchema.index({ resetPasswordToken: 1 }, { sparse: true });
+UserSchema.index({ admissionSagaId: 1, admissionSagaGeneration: 1 }, { sparse: true });
 
 // Normalized role: maps legacy roles to new roles
 UserSchema.virtual('normalizedRole').get(function () {

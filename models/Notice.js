@@ -25,7 +25,7 @@ const NoticeSchema = new mongoose.Schema(
     targetAudience: {
       type: [String],
       enum: ['All', 'Students', 'Faculty', 'Parents', 'Admin'],
-      default: ['All'],
+      default: [],
     },
     targetClasses: {
       type: [String],

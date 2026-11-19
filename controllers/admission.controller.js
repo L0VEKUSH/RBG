@@ -1,4 +1,5 @@
 const admissionService = require('../services/admission.service');
+const uploadService = require('../services/upload.service');
 const ErrorResponse = require('../utils/errorResponse');
 
 exports.applyForAdmission = async (req, res, next) => {
@@ -53,7 +54,9 @@ exports.updateAdmission = async (req, res, next) => {
 
 exports.updateAdmissionStatus = async (req, res, next) => {
     try {
-        const admission = await admissionService.updateAdmissionStatus(req.params.id, req.body.status);
+        const admission = await admissionService.updateAdmissionStatus(
+            req.params.id, req.body.status, req.body.enrollmentEffectiveFrom
+        );
         res.status(200).json({ success: true, message: 'Status updated', data: admission });
     } catch (error) { next(error); }
 };
@@ -62,5 +65,38 @@ exports.admitStudent = async (req, res, next) => {
     try {
         const student = await admissionService.admitStudent(req.params.id);
         res.status(200).json({ success: true, message: 'Student admitted successfully', data: student });
+    } catch (error) { next(error); }
+};
+
+exports.uploadAdmissionDocument = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return next(new ErrorResponse('Please select a document to upload', 400));
+        }
+        const admission = await admissionService.getAdmissionById(req.params.id);
+        if (!admission) {
+            return next(new ErrorResponse('Admission not found', 404));
+        }
+        const saved = await uploadService.saveFile(req.file, 'documents');
+        try {
+            const docName = (req.body && typeof req.body.name === 'string' && req.body.name.trim())
+                ? req.body.name.trim()
+                : req.file.originalname || 'Admission Document';
+            admission.documents.push({
+                name: docName,
+                url: saved.url,
+                uploadedAt: new Date(),
+            });
+            await admission.save();
+        } catch (dbErr) {
+            await uploadService.deleteFile(saved.filename, 'documents');
+            throw dbErr;
+        }
+
+        res.status(201).json({
+            success: true,
+            message: 'Admission document uploaded',
+            data: admission.documents,
+        });
     } catch (error) { next(error); }
 };

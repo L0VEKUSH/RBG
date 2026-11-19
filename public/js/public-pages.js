@@ -40,13 +40,17 @@ document.getElementById('admission-form').addEventListener('submit', async funct
             }
         });
 
-/* contact.html page behavior */
+/* No contact-message endpoint is registered; do not claim that a message was sent. */
 document.getElementById('contact-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const btn = document.querySelector('#contact-form button[type="submit"]');
-            if(btn){ btn.textContent = 'Message Sent'; btn.disabled = true; btn.classList.add('contact-submit-success'); }
-document.getElementById('contact-form').reset();
-            this.reset();
+            let status = this.querySelector('[data-contact-status]');
+            if (!status) {
+                status = document.createElement('p');
+                status.dataset.contactStatus = 'true';
+                status.setAttribute('role', 'status');
+                this.appendChild(status);
+            }
+            status.textContent = 'This contact form is unavailable. Please use the school contact details on this page.';
         });
 
 /* events.html page behavior */
@@ -55,30 +59,22 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch(API_BASE + '/events/public')
                 .then(res => res.json())
                 .then(data => {
-                    if(data.success && data.data && data.data.length > 0) {
-                        renderEventsGrid(data.data);
-                    } else {
-                        throw new Error('No events');
-                    }
+                    if (data.success && Array.isArray(data.data)) renderEventsGrid(data.data);
+                    else showListState(eventsGrid, 'Events are unavailable.');
                 })
-                .catch(err => {
-                    const fallback = [
-                        { title: "Science Exhibition", startDate: new Date(Date.now() + 86400000*5).toISOString(), description: "Annual science exhibition by middle school." },
-                        { title: "Inter-School Debate", startDate: new Date(Date.now() + 86400000*12).toISOString(), description: "Debate competition for secondary section." },
-                        { title: "Annual Sports Meet", startDate: new Date(Date.now() + 86400000*30).toISOString(), description: "Track and field events." }
-                    ];
-                    renderEventsGrid(fallback);
-                });
+                .catch(() => showListState(eventsGrid, 'Events could not be loaded.'));
 
             function renderEventsGrid(events) {
                 eventsGrid.innerHTML = '';
+                if (!events.length) return showListState(eventsGrid, 'No published events.');
                 events.forEach(ev => {
                     const date = new Date(ev.startDate || ev.date).toDateString();
+                    const description = typeof ev.description === 'string' ? ev.description.trim() : '';
                     eventsGrid.innerHTML += `
                         <div class="card">
                             <h3 class="csp-style-b0e08465c2">${ev.title}</h3>
                             <p class="subtitle"><i class="fas fa-calendar"></i> ${date}</p>
-                            <p>${ev.description || 'Join us for this exciting school event.'}</p>
+                            ${description ? `<p>${description}</p>` : ''}
                         </div>
                     `;
                 });
@@ -100,25 +96,17 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch(API_BASE + '/notices') // non-pinned full list
                 .then(res => res.json())
                 .then(data => {
-                    if(data.success && data.data && data.data.length > 0) {
-                        renderNoticesFull(data.data);
-                    } else {
-                        throw new Error('No notices');
-                    }
+                    if (data.success && Array.isArray(data.data)) renderNoticesFull(data.data);
+                    else showListState(noticesList, 'Notices are unavailable.');
                 })
-                .catch(err => {
-                    const fallback = [
-                        { title: "Admissions Open for 2026-27", date: new Date().toISOString(), type: "Admission", content: "We are now accepting applications." },
-                        { title: "Parent-Teacher Meeting for Class X", date: new Date(Date.now() + 86400000*3).toISOString(), type: "Academic", content: "Mandatory PTM." },
-                        { title: "Annual Sports Day Schedule", date: new Date(Date.now() + 86400000*7).toISOString(), type: "Events", content: "Details of track events." }
-                    ];
-                    renderNoticesFull(fallback);
-                });
+                .catch(() => showListState(noticesList, 'Notices could not be loaded.'));
 
             function renderNoticesFull(notices) {
                 noticesList.innerHTML = '';
+                if (!notices.length) return showListState(noticesList, 'No published notices.');
                 notices.forEach(notice => {
                     const date = new Date(notice.date || notice.createdAt);
+                    const content = typeof notice.content === 'string' ? notice.content.trim() : '';
                     noticesList.innerHTML += `
                         <div class="list-item csp-style-3cf8c7bc18" >
                             <div class="date-box csp-style-f87270532f" >
@@ -128,10 +116,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="item-content">
                                 <span class="csp-style-36ead2596f">${notice.type || 'General'}</span>
                                 <h4 class="csp-style-04f181fe7c">${notice.title}</h4>
-                                <p>${notice.content || 'Please contact school admin for details.'}</p>
+                                ${content ? `<p>${content}</p>` : ''}
                             </div>
                         </div>
                     `;
                 });
             }
         });
+
+function showListState(container, message) {
+    if (!container) return;
+    container.textContent = '';
+    const state = document.createElement('p');
+    state.className = 'empty-state';
+    state.textContent = message;
+    container.appendChild(state);
+}

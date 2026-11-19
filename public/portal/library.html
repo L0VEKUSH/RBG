@@ -83,7 +83,7 @@
             <div class="card-body csp-style-779e3b5ec0" ><canvas id="dashInventoryChart"></canvas></div>
           </div>
           <div class="card">
-            <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Overdue Books</h3><button class="btn btn-ghost btn-sm">View All</button></div>
+            <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Overdue Books</h3></div>
             <div class="card-body" id="dashOverdue"><div class="spinner"></div></div>
           </div>
         </div>
@@ -100,13 +100,12 @@
               <div class="csp-style-364d04928c">
                 <h4 class="csp-style-7b80e59e07">1. Select Member</h4>
                 <div class="form-grid csp-style-26f6376c0b" >
-                  <div class="form-group"><label for="issueRole">Role</label><select class="form-control" id="issueRole"><option value="student">Student</option><option value="teacher">Teacher</option></select></div>
-                  <div class="form-group"><label for="issueMemberId">Member ID (Adm No. or Emp ID)</label><input type="text" class="form-control" id="issueMemberId" placeholder="e.g. ADM101"></div>
+                  <div class="form-group"><label for="issueStudentId">Student record ID</label><input type="text" class="form-control" id="issueStudentId" placeholder="Enter student record ID" autocomplete="off"></div>
                 </div>
               </div>
               <div class="csp-style-364d04928c">
                 <h4 class="csp-style-7b80e59e07">2. Select Book</h4>
-                <div class="form-group"><label for="issueBookId">Book ID / ISBN</label><input type="text" class="form-control" id="issueBookId" placeholder="Scan or enter Book ID"></div>
+                <div class="form-group"><label for="issueBookId">Book record ID</label><input type="text" class="form-control" id="issueBookId" placeholder="Enter book record ID" autocomplete="off"></div>
                 <div class="form-group"><label for="issueDueDate">Expected Return Date</label><input type="date" class="form-control" id="issueDueDate"></div>
               </div>
               <button class="btn btn-primary btn-lg" id="btnIssueSubmit" data-csp-action-click="submitIssue" data-csp-args-click="%5B%5D"><i class="fas fa-check-circle"></i> Confirm Issue</button>
@@ -122,22 +121,17 @@
         </div>
         <div class="card csp-style-823ab81c89" >
           <div class="card-body">
-            <div class="form-grid csp-style-0b063c01b6" >
-              <div class="form-group csp-style-ab79ea2b85" ><label for="retBookId">Enter Book ID</label><input type="text" class="form-control" id="retBookId" placeholder="Scan or type ID"></div>
-              <button class="btn btn-primary" data-csp-action-click="lookupReturn" data-csp-args-click="%5B%5D"><i class="fas fa-search"></i> Find Record</button>
+            <div class="form-group">
+              <label for="returnTransactionId">Issued loan</label>
+              <select class="form-control" id="returnTransactionId" aria-describedby="returnStatus" data-csp-action-change="onReturnSelectionChange" data-csp-args-change="%5B%5D">
+                <option value="">Select an issued loan</option>
+              </select>
             </div>
-            
-            <div id="returnDetails" class="csp-style-4063c23d86">
-              <div class="stats-grid csp-style-e7e3e005bf" >
-                <div class="stat-card"><div class="stat-content"><div class="stat-label">Book Title</div><div class="stat-value csp-style-bdfe08e900" id="retBookTitle" >Title</div></div></div>
-                <div class="stat-card"><div class="stat-content"><div class="stat-label">Issued To</div><div class="stat-value csp-style-bdfe08e900" id="retMemberName" >Name</div></div></div>
-              </div>
-              <div class="form-group">
-                <label for="retCondition">Book Condition</label>
-                <select class="form-control" id="retCondition"><option>Good</option><option>Damaged</option><option>Lost</option></select>
-              </div>
-              <button class="btn btn-success" id="btnProcessReturn" data-csp-action-click="processReturn" data-csp-args-click="%5B%5D"><i class="fas fa-check"></i> Process Return</button>
+            <div class="form-grid csp-style-0b063c01b6">
+              <button class="btn btn-ghost" id="btnRefreshLoans" type="button" data-csp-action-click="loadReturnLoans" data-csp-args-click="%5B%5D">Refresh issued loans</button>
+              <button class="btn btn-success" id="btnProcessReturn" type="button" disabled data-csp-action-click="processReturn" data-csp-args-click="%5B%5D"><i class="fas fa-check"></i> Return selected loan</button>
             </div>
+            <p id="returnStatus" class="empty-state" role="status" aria-live="polite">Issued loans will load when this panel opens.</p>
           </div>
         </div>
       </div>

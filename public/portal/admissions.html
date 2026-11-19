@@ -52,28 +52,28 @@
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-inbox"></i></div>
                         <div class="stat-content">
-                            <div class="stat-value" id="statSubmitted">0</div>
+                            <div class="stat-value" id="statSubmitted" aria-live="polite">Loading…</div>
                             <div class="stat-label">New Applications</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-search"></i></div>
                         <div class="stat-content">
-                            <div class="stat-value" id="statReview">0</div>
+                            <div class="stat-value" id="statReview" aria-live="polite">Loading…</div>
                             <div class="stat-label">Under Review</div>
                         </div>
                     </div>
                     <div class="stat-card warning">
                         <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
                         <div class="stat-content">
-                            <div class="stat-value" id="statDocVerify">0</div>
+                            <div class="stat-value" id="statDocVerify" aria-live="polite">Loading…</div>
                             <div class="stat-label">Doc Verification</div>
                         </div>
                     </div>
                     <div class="stat-card success">
                         <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
                         <div class="stat-content">
-                            <div class="stat-value" id="statApproved">0</div>
+                            <div class="stat-value" id="statApproved" aria-live="polite">Loading…</div>
                             <div class="stat-label">Approved</div>
                         </div>
                     </div>
@@ -126,6 +126,7 @@
             <div id="page-applications" class="page-section">
                 <div class="section-header">
                     <h2><i class="fas fa-folder-open"></i> All Applications</h2>
+                    <p class="text-muted">Choose the school-local enrollment effective date when approving. Account activation remains separate.</p>
                 </div>
                 <div class="card">
                     <div class="filter-bar">
@@ -155,7 +156,7 @@
                                     <th>Class</th>
                                     <th>Applied On</th>
                                     <th>Status</th>
-                                    <th>Action</th>
+                                    <th>Enrollment effective date / action</th>
                                 </tr>
                             </thead>
                             <tbody id="allAppsBody">

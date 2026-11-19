@@ -1,8 +1,26 @@
 const User = require('../models/User');
 const Faculty = require('../models/Faculty');
+const Class = require('../models/Class');
 const ErrorResponse = require('../utils/errorResponse');
 const APIFeatures = require('../utils/apiFeatures');
 const logger = require('../utils/logger');
+const facultyLeaveService = require('../services/faculty-leave.service');
+
+function assertNoEmbeddedLeaveMutation(value) {
+  if (!value || typeof value !== 'object') return;
+  for (const [key, nested] of Object.entries(value)) {
+    const parts = key.split('.');
+    if (parts.includes('leaves')) throw new ErrorResponse('Faculty leave records must use the leave workflow', 400);
+    if (key === '$rename' && nested && typeof nested === 'object') {
+      const renamedLeavePath = Object.entries(nested).some(([source, destination]) =>
+        source.split('.').includes('leaves') ||
+        (typeof destination === 'string' && destination.split('.').includes('leaves'))
+      );
+      if (renamedLeavePath) throw new ErrorResponse('Faculty leave records must use the leave workflow', 400);
+    }
+    assertNoEmbeddedLeaveMutation(nested);
+  }
+}
 
 /**
  * @desc    Create faculty member
@@ -10,19 +28,10 @@ const logger = require('../utils/logger');
  * @access  Private (Admin)
  */
 exports.createFaculty = async (req, res) => {
-  const { name, email, password, gender, dateOfBirth, phone, address, ...facultyData } = req.body;
-
-  const existingUser = await User.findOne({ email });
-  if (existingUser) throw new ErrorResponse('Email already in use', 400);
-
-  const user = await User.create({
-    name, email, password, gender, dateOfBirth, phone, address, role: 'faculty',
+  res.status(410).json({
+    success: false,
+    message: 'Password-based account creation is disabled. Use the Teacher invitation workflow; the account owner sets their password during activation.',
   });
-
-  const faculty = await Faculty.create({ user: user._id, ...facultyData });
-  logger.info(`Faculty created: ${user.name} [${faculty.employeeId}]`);
-
-  res.status(201).json({ success: true, message: 'Faculty created successfully', data: { faculty } });
 };
 
 /**
@@ -70,10 +79,33 @@ exports.getFacultyById = async (req, res) => {
  * @access  Private (Admin)
  */
 exports.updateFaculty = async (req, res) => {
+  assertNoEmbeddedLeaveMutation(req.body);
+  if (req.body.section !== undefined || req.body.sections !== undefined) {
+    throw new ErrorResponse('Class sections are not supported. RBG School ERP models single undivided classes per level.', 400);
+  }
   const faculty = await Faculty.findById(req.params.id);
   if (!faculty) throw new ErrorResponse(`Faculty not found: ${req.params.id}`, 404);
 
   const { name, email, phone, address, gender, profilePhoto, ...facultyData } = req.body;
+
+  if (facultyData.classTeacherOf && facultyData.classTeacherOf.class) {
+    try {
+      facultyData.classTeacherOf.class = Class.validateAndNormalizeClassWrite(facultyData.classTeacherOf.class, 'classTeacherOf.class');
+    } catch (err) {
+      throw new ErrorResponse(err.message, 400);
+    }
+  }
+  if (Array.isArray(facultyData.subjects)) {
+    for (const sub of facultyData.subjects) {
+      if (Array.isArray(sub.classes)) {
+        try {
+          sub.classes = sub.classes.map(c => Class.validateAndNormalizeClassWrite(c, 'subject class'));
+        } catch (err) {
+          throw new ErrorResponse(err.message, 400);
+        }
+      }
+    }
+  }
 
   if (name || email || phone || address || gender || profilePhoto) {
     await User.findByIdAndUpdate(faculty.user, {
@@ -122,13 +154,8 @@ exports.getMyProfile = async (req, res) => {
  * @access  Private (Faculty)
  */
 exports.applyLeave = async (req, res) => {
-  const faculty = await Faculty.findById(req.params.id);
-  if (!faculty) throw new ErrorResponse('Faculty not found', 404);
-
-  faculty.leaves.push(req.body);
-  await faculty.save();
-
-  res.status(201).json({ success: true, message: 'Leave application submitted', data: { faculty } });
+  const leave = await facultyLeaveService.applyFacultyLeave(req.params.id, req.user, req.body);
+  res.status(201).json({ success: true, message: 'Leave application submitted', data: { leave } });
 };
 
 /**
@@ -137,15 +164,9 @@ exports.applyLeave = async (req, res) => {
  * @access  Private (Admin)
  */
 exports.updateLeaveStatus = async (req, res) => {
-  const faculty = await Faculty.findById(req.params.id);
-  if (!faculty) throw new ErrorResponse('Faculty not found', 404);
-
-  const leave = faculty.leaves.id(req.params.leaveId);
-  if (!leave) throw new ErrorResponse('Leave record not found', 404);
-
-  leave.status = req.body.status;
-  await faculty.save();
-
+  const leave = await facultyLeaveService.updateFacultyLeaveStatus(
+    req.params.id, req.params.leaveId, req.body.status, req.user
+  );
   res.status(200).json({ success: true, message: 'Leave status updated', data: { leave } });
 };
 

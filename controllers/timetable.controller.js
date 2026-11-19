@@ -18,20 +18,22 @@ exports.createTimetable = async (req, res, next) => {
 exports.updateTimetable = async (req, res, next) => {
     try {
         const timetable = await timetableService.updateTimetable(req.params.id, req.body);
+        if (!timetable) return next(new ErrorResponse('Timetable not found', 404));
         res.status(200).json({ success: true, message: 'Timetable updated', data: timetable });
     } catch (error) { next(error); }
 };
 
 exports.getClassTimetable = async (req, res, next) => {
     try {
-        const timetable = await timetableService.getTimetableByClass(req.params.class, req.params.pageBlock);
+        const academicYear = typeof req.query.academicYear === 'string' ? req.query.academicYear : undefined;
+        const timetable = await timetableService.getTimetableByClass(req.params.class, academicYear, req.user);
         res.status(200).json({ success: true, message: 'Class timetable retrieved', data: timetable, count: timetable.length });
     } catch (error) { next(error); }
 };
 
 exports.getTeacherTimetable = async (req, res, next) => {
     try {
-        const timetable = await timetableService.getTimetableByTeacher(req.params.teacherId);
+        const timetable = await timetableService.getTimetableByTeacher(req.params.teacherId, req.user);
         res.status(200).json({ success: true, message: 'Teacher timetable retrieved', data: timetable, count: timetable.length });
     } catch (error) { next(error); }
 };

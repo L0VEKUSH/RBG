@@ -1,6 +1,7 @@
 const Notice = require('../models/Notice');
 const ErrorResponse = require('../utils/errorResponse');
-const APIFeatures = require('../utils/apiFeatures');
+const noticeService = require('../services/notice.service');
+const { hasAnyPermission } = require('../services/audience-scope.service');
 
 /**
  * @desc    Create notice
@@ -8,7 +9,7 @@ const APIFeatures = require('../utils/apiFeatures');
  * @access  Private (Admin, Faculty)
  */
 exports.createNotice = async (req, res) => {
-  const notice = await Notice.create({ ...req.body, createdBy: req.user.id });
+  const notice = await noticeService.createNotice(req.body, req.user);
   res.status(201).json({ success: true, message: 'Notice created', data: { notice } });
 };
 
@@ -18,21 +19,15 @@ exports.createNotice = async (req, res) => {
  * @access  Public / Private
  */
 exports.getAllNotices = async (req, res) => {
-  const baseQuery = Notice.find({ isPublished: true })
-    .populate('createdBy', 'name role');
-
-  const features = new APIFeatures(baseQuery, req.query)
-    .filter().sort().limitFields().paginate();
-
-  const notices = await features.query;
-  const total = await Notice.countDocuments({ isPublished: true });
+  const { notices, total, page, limit } = await noticeService.getAllNotices(req.user, req.query);
 
   res.status(200).json({
     success: true,
     count: notices.length,
     total,
-    page: features.page,
+    page,
     data: { notices },
+    limit,
   });
 };
 
@@ -42,10 +37,7 @@ exports.getAllNotices = async (req, res) => {
  * @access  Public
  */
 exports.getPinnedNotices = async (req, res) => {
-  const notices = await Notice.find({ isPublished: true, isPinned: true })
-    .populate('createdBy', 'name')
-    .sort('-publishDate')
-    .limit(5);
+  const notices = await noticeService.getPinnedNotices(req.user);
   res.status(200).json({ success: true, count: notices.length, data: { notices } });
 };
 
@@ -55,17 +47,7 @@ exports.getPinnedNotices = async (req, res) => {
  * @access  Public
  */
 exports.getNoticeById = async (req, res) => {
-  const notice = await Notice.findById(req.params.id)
-    .populate('createdBy', 'name role');
-  if (!notice) throw new ErrorResponse('Notice not found', 404);
-
-  // Increment view count
-  await Notice.findByIdAndUpdate(req.params.id, {
-    $inc: { views: 1 },
-    ...(req.user && {
-      $addToSet: { viewedBy: { user: req.user.id } },
-    }),
-  });
+  const notice = await noticeService.getNoticeById(req.params.id, req.user);
 
   res.status(200).json({ success: true, data: { notice } });
 };
@@ -106,6 +88,11 @@ exports.deleteNotice = async (req, res) => {
  * @access  Private (Admin)
  */
 exports.togglePin = async (req, res) => {
+  if (!hasAnyPermission(req.user, 'notices.update') ||
+      !hasAnyPermission(req.user, 'notices.view-management')) {
+    throw new ErrorResponse('Not authorized to manage notice pins', 403);
+  }
+
   const notice = await Notice.findById(req.params.id);
   if (!notice) throw new ErrorResponse('Notice not found', 404);
   notice.isPinned = !notice.isPinned;
@@ -123,8 +110,6 @@ exports.togglePin = async (req, res) => {
  * @access  Public
  */
 exports.getNoticesByType = async (req, res) => {
-  const notices = await Notice.find({ type: req.params.type, isPublished: true })
-    .populate('createdBy', 'name')
-    .sort('-publishDate');
+  const notices = await noticeService.getNoticesByType(req.params.type, req.user);
   res.status(200).json({ success: true, count: notices.length, data: { notices } });
 };

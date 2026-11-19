@@ -25,6 +25,7 @@ const STUDENT_NAV = [
 ];
 
 let _studentData = null;
+let _studentId = null;
 let _timetableData = null;
 let _homeworkAll = [];
 let _bookSearchTimer = null;
@@ -62,11 +63,12 @@ async function loadStudentDashboard(user) {
     const data = await apiFetch('/dashboard/student');
     const d = data.data || {};
     _studentData = d;
+    _studentId = typeof d.studentId === 'string' ? d.studentId : null;
 
     // Student meta (class, roll)
     const meta = document.getElementById('studentMeta');
-    if (meta && d.student) {
-      meta.textContent = `Class ${d.student.class || '—'} · Roll No. ${d.student.rollNumber || '—'} · Adm. ${d.student.admissionNumber || '—'}`;
+    if (meta && d.profile) {
+      meta.textContent = `Class ${d.profile.class || '—'} · Roll No. ${d.profile.rollNumber || '—'} · Adm. ${d.profile.admissionNumber || '—'}`;
     }
 
     // Alert banners
@@ -85,7 +87,7 @@ async function loadStudentDashboard(user) {
                 <p class="csp-style-18adc8f2e9"><i class="fas fa-clock"></i> ${d.nextClass.startTime} - ${d.nextClass.endTime} &nbsp;&bull;&nbsp; <i class="fas fa-chalkboard-teacher"></i> ${d.nextClass.teacherName} &nbsp;&bull;&nbsp; <i class="fas fa-map-marker-alt"></i> Room ${d.nextClass.room || '—'}</p>
             </div>`;
         } else {
-            nextEl.innerHTML = `<div class="next-class-highlight"><p class="csp-style-6b2a94ea3b">No more classes today! 🎉</p></div>`;
+            nextEl.innerHTML = `<div class="next-class-highlight"><p class="csp-style-6b2a94ea3b">No timetable entry is available for today.</p></div>`;
         }
     }
 
@@ -126,12 +128,12 @@ function renderAlertBanners(d) {
     </div>`;
   }
 
-  if (d.attendancePct !== undefined && d.attendancePct < 75) {
+  if (typeof d.attendancePercentage === 'number' && d.attendancePercentage < 75) {
     html += `<div class="alert-banner warning">
       <i class="fas fa-exclamation-triangle"></i>
       <div class="alert-banner-content">
         <strong>Low Attendance Warning</strong>
-        Your attendance is ${d.attendancePct.toFixed(1)}%, which is below the required 75%.
+        Your attendance is ${d.attendancePercentage.toFixed(1)}%, which is below the required 75%.
       </div>
       <button class="alert-dismiss btn-ghost btn-sm" aria-label="Dismiss fee alert" ${cspActionAttrs("removeParent", [], "click", [], [])}><i class="fas fa-times"></i></button>
     </div>`;
@@ -155,8 +157,8 @@ function renderDashboardStats(d) {
   const grid = document.getElementById('dashStats');
   if (!grid) return;
 
-  const att = d.attendancePct !== undefined ? d.attendancePct.toFixed(1) + '%' : '—';
-  const attColor = (d.attendancePct || 0) >= 75 ? 'success' : 'danger';
+  const att = typeof d.attendancePercentage === 'number' ? d.attendancePercentage.toFixed(1) + '%' : 'Unavailable';
+  const attColor = typeof d.attendancePercentage !== 'number' ? 'info' : d.attendancePercentage >= 75 ? 'success' : 'danger';
 
   grid.innerHTML = `
     <div class="stat-card ${attColor}">
@@ -183,7 +185,7 @@ function renderDashboardStats(d) {
     <div class="stat-card purple">
       <div class="stat-icon purple"><i class="fas fa-book-open"></i></div>
       <div class="stat-content">
-        <div class="stat-value">${d.booksIssued ?? '0'}</div>
+        <div class="stat-value">${d.booksIssued ?? 'Unavailable'}</div>
         <div class="stat-label">Books Issued</div>
       </div>
     </div>
@@ -222,7 +224,11 @@ function loadTodayTimetableWidget(d) {
 
 function loadHomeworkWidget(d) {
   const el = document.getElementById('dashHomework');
-  const hw = (d.pendingHomework || []).slice(0, 5);
+  if (!Array.isArray(d.pendingHomework)) {
+    setEmptyState(el, 'book', 'Unavailable', 'Homework details are not provided by this dashboard.');
+    return;
+  }
+  const hw = d.pendingHomework.slice(0, 5);
   if (!hw.length) {
     setEmptyState(el, 'check-circle', 'All caught up!', 'No pending homework. Keep it up! 🎉');
     return;
@@ -242,7 +248,11 @@ function loadHomeworkWidget(d) {
 
 function loadExamsWidget(d) {
   const el = document.getElementById('dashExams');
-  const exams = (d.upcomingExamsList || []).slice(0, 3);
+  if (!Array.isArray(d.upcomingExamsList)) {
+    setEmptyState(el, 'file-alt', 'Unavailable', 'Upcoming exam details are not provided by this dashboard.');
+    return;
+  }
+  const exams = d.upcomingExamsList.slice(0, 3);
   if (!exams.length) {
     setEmptyState(el, 'file-alt', 'No Upcoming Exams', 'Sit back and relax!');
     return;
@@ -262,7 +272,11 @@ function loadExamsWidget(d) {
 
 function loadResultsWidget(d) {
   const el = document.getElementById('dashResults');
-  const results = (d.recentResults || []).slice(0, 3);
+  if (!Array.isArray(d.recentResults)) {
+    setEmptyState(el, 'chart-bar', 'Unavailable', 'Recent results are not provided by this dashboard.');
+    return;
+  }
+  const results = d.recentResults.slice(0, 3);
   if (!results.length) {
     setEmptyState(el, 'chart-bar', 'No Results Yet', 'Results will appear here after exams.');
     return;
@@ -281,6 +295,12 @@ function loadResultsWidget(d) {
 }
 
 /* ── Timetable ── */
+function escapeStudentPortalText(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]);
+}
+
 async function loadTimetable() {
   const content = document.getElementById('timetableContent');
   const tabs = document.getElementById('timetableDayTabs');
@@ -288,9 +308,23 @@ async function loadTimetable() {
   content.innerHTML = '<div class="spinner csp-style-c4b102f94c" ></div>';
 
   try {
-    const data = await apiFetch('/timetable/my-timetable');
-    _timetableData = data.data || {};
+    const response = await apiFetch('/timetable/my-timetable');
     const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    if (response?.success !== true || !Array.isArray(response.data)) {
+      throw new Error('Timetable response was invalid.');
+    }
+    const grouped = Object.fromEntries(days.map(day => [day, []]));
+    for (const timetable of response.data) {
+      if (!timetable || !Object.prototype.hasOwnProperty.call(grouped, timetable.day) || !Array.isArray(timetable.periods) ||
+          timetable.periods.some(period => !period || typeof period !== 'object' || Array.isArray(period))) {
+        throw new Error('Timetable contains an invalid weekday schedule.');
+      }
+      grouped[timetable.day].push(...timetable.periods);
+    }
+    for (const day of days) {
+      grouped[day].sort((left, right) => Number(left?.periodNumber || 0) - Number(right?.periodNumber || 0));
+    }
+    _timetableData = grouped;
     const today = getTodayDayName();
 
     // Build day tabs
@@ -300,7 +334,7 @@ async function loadTimetable() {
 
     showTimetableDay(today, tabs.querySelector('.active'));
   } catch (err) {
-    setEmptyState(content, 'clock', 'Timetable Unavailable', err.message);
+    setEmptyState(content, 'clock', 'Timetable Unavailable', escapeStudentPortalText(err.message || 'Timetable could not be loaded.'));
   }
 }
 
@@ -324,12 +358,15 @@ window.showTimetableDay = function(day, btn) {
     const [eh] = (p.endTime||'0:0').split(':').map(Number);
     const isCurrent = isToday && now.getHours() >= sh && now.getHours() < eh;
     const isPast = isToday && now.getHours() >= eh;
+    const teacherName = p.teacher && typeof p.teacher === 'object'
+      ? p.teacher.user?.name || p.teacher.name || ''
+      : '';
     return `<div class="schedule-item ${isCurrent?'current':isPast?'past':''}">
-      <span class="schedule-time">${p.startTime} – ${p.endTime}</span>
+      <span class="schedule-time">${escapeStudentPortalText(p.startTime || '—')} – ${escapeStudentPortalText(p.endTime || '—')}</span>
       <span class="schedule-dot"></span>
       <div>
-        <div class="schedule-subject">${p.subject||'—'}</div>
-        <div class="schedule-meta">${p.teacher?'By '+p.teacher:''} ${p.room?'· Room '+p.room:''}</div>
+        <div class="schedule-subject">${escapeStudentPortalText(p.subject || '—')}</div>
+        <div class="schedule-meta">${teacherName ? `By ${escapeStudentPortalText(teacherName)}` : ''} ${p.room ? `· Room ${escapeStudentPortalText(p.room)}` : ''}</div>
       </div>
       ${isCurrent ? '<span class="badge badge-teal csp-style-ca6fc035af" >Now</span>' : ''}
     </div>`;
@@ -375,9 +412,12 @@ function renderHomeworkList(items) {
   }
 
   list.innerHTML = items.map(h => {
-    const isOverdue = new Date(h.dueDate) < new Date() && (h.status||'pending') === 'pending';
-    const statusCls = h.status === 'submitted' ? 'badge-success' : isOverdue ? 'badge-danger' : 'badge-warning';
-    const statusText = h.status === 'submitted' ? 'Submitted' : isOverdue ? 'Overdue' : 'Pending';
+    const status = String(h.status || 'pending').toLowerCase();
+    const isOverdue = new Date(h.dueDate) < new Date() && status === 'pending';
+    const statusCls = ['submitted', 'reviewed'].includes(status) ? 'badge-success' :
+      (status === 'late' || isOverdue) ? 'badge-danger' : 'badge-warning';
+    const statusText = status === 'reviewed' ? 'Reviewed' : status === 'submitted' ? 'Submitted' :
+      status === 'late' ? 'Submitted late' : isOverdue ? 'Overdue' : 'Pending';
     return `<div class="card homework-card">
       <div class="card-body">
         <div class="csp-style-407bb517cb">
@@ -393,21 +433,140 @@ function renderHomeworkList(items) {
             <i class="fas fa-calendar-day"></i> Due: ${formatDate(h.dueDate)}
             ${h.teacher ? ` · <i class="fas fa-chalkboard-teacher"></i> ${h.teacher}` : ''}
           </div>
-          ${(h.status||'pending') === 'pending' ? `<button class="btn btn-primary btn-sm" ${cspActionAttrs("submitHomework", ['${h._id}'], "click", [], [])}><i class="fas fa-upload"></i> Submit</button>` : ''}
+          ${(h.status||'pending') === 'pending' ? `
+            <button class="btn btn-primary btn-sm" ${cspActionAttrs('openHomeworkSubmissionForm', [String(h._id)], 'click', [1], [])}><i class="fas fa-upload"></i> Submit</button>
+            <div class="homework-submission-form" hidden>
+              <label>Written response
+                <textarea class="homework-submission-content" rows="3" aria-label="Written homework response"></textarea>
+              </label>
+              <label>Link name (optional)
+                <input class="homework-submission-link-name" type="text" aria-label="Submission link name">
+              </label>
+              <label>Work link (optional)
+                <input class="homework-submission-link-url" type="url" inputmode="url" placeholder="https://…" aria-label="Submission link">
+              </label>
+              <button class="btn btn-primary btn-sm" ${cspActionAttrs('submitHomework', [String(h._id)], 'click', [1], [])}>Send submission</button>
+              <button class="btn btn-secondary btn-sm" ${cspActionAttrs('closeHomeworkSubmissionForm', [], 'click', [1], [])}>Cancel</button>
+              <div class="homework-submission-feedback" role="status" aria-live="polite"></div>
+            </div>` : ''}
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-window.submitHomework = async function(id) {
-  toast.info('Submission', 'Homework submission is being processed...');
+const _homeworkSubmitting = new Set();
+window.openHomeworkSubmissionForm = function(id, button) {
+  const card = button?.closest('.homework-card');
+  const form = card?.querySelector('.homework-submission-form');
+  if (!form) return;
+  form.hidden = false;
+  button.hidden = true;
+  form.querySelector('.homework-submission-content')?.focus();
+};
+
+window.closeHomeworkSubmissionForm = function(button) {
+  const card = button?.closest('.homework-card');
+  const form = card?.querySelector('.homework-submission-form');
+  if (!form) return;
+  form.hidden = true;
+  const openButton = card.querySelector('[data-csp-action-click="openHomeworkSubmissionForm"]');
+  if (openButton) openButton.hidden = false;
+};
+
+function homeworkSubmissionMatches(submission, payload) {
+  if (!submission || !submission.submittedAt ||
+      !['submitted', 'late', 'reviewed'].includes(String(submission.status || '').toLowerCase()) ||
+      String(submission.content || '') !== payload.content) return false;
+  const attachments = Array.isArray(submission.attachments) ? submission.attachments : [];
+  return attachments.length === payload.attachments.length && payload.attachments.every((attachment, index) =>
+    String(attachments[index]?.name || '') === attachment.name &&
+    String(attachments[index]?.url || '') === attachment.url
+  );
+}
+
+window.submitHomework = async function(id, button) {
+  const homeworkId = String(id || '');
+  if (!homeworkId || _homeworkSubmitting.has(homeworkId)) return;
+  const card = button?.closest('.homework-card');
+  const form = card?.querySelector('.homework-submission-form');
+  const feedback = form?.querySelector('.homework-submission-feedback');
+  const content = form?.querySelector('.homework-submission-content')?.value.trim() || '';
+  const linkInput = form?.querySelector('.homework-submission-link-url');
+  const linkUrl = linkInput?.value.trim() || '';
+  const linkName = form?.querySelector('.homework-submission-link-name')?.value.trim() || 'Submission link';
+  if (!form || !linkInput || !feedback) return;
+  if (!content && !linkUrl) {
+    feedback.textContent = 'Enter a written response or provide a link.';
+    toast.warning('Submission required', 'Enter a written response or provide a work link.');
+    return;
+  }
+  if (linkUrl && !linkInput.checkValidity()) {
+    feedback.textContent = 'Enter a valid HTTP or HTTPS link.';
+    toast.warning('Invalid link', 'Check the submission link and try again.');
+    return;
+  }
+  let normalizedLinkUrl = '';
+  if (linkUrl) {
+    try {
+      const parsedLink = new URL(linkUrl);
+      if (!['http:', 'https:'].includes(parsedLink.protocol) || parsedLink.username || parsedLink.password) {
+        throw new Error('invalid link');
+      }
+      normalizedLinkUrl = parsedLink.toString();
+    } catch (_) {
+      feedback.textContent = 'Enter a valid HTTP or HTTPS link.';
+      toast.warning('Invalid link', 'Check the submission link and try again.');
+      return;
+    }
+  }
+  const payload = {
+    content,
+    attachments: normalizedLinkUrl ? [{ name: linkName, url: normalizedLinkUrl }] : [],
+  };
+  _homeworkSubmitting.add(homeworkId);
+  if (button) button.disabled = true;
+  feedback.textContent = 'Sending submission…';
   try {
-    await apiFetch(`/homework/${id}/submit`, { method: 'PATCH' });
-    toast.success('Submitted!', 'Your homework has been marked as submitted.');
-    loadHomework();
-  } catch (err) {
-    toast.error('Failed', err.message);
+    const response = await apiFetch(`/homework/${encodeURIComponent(homeworkId)}/submit`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (response?.success !== true || !homeworkSubmissionMatches(response.data, payload)) {
+      throw { status: 503, message: 'The server response did not confirm the saved submission.' };
+    }
+    feedback.textContent = 'Submission confirmed.';
+    toast.success(
+      response.data.status === 'late' ? 'Submitted late' : 'Submitted!',
+      response.data.status === 'late' ? 'Your work was received after the deadline and marked late.' : 'Your homework submission was saved.'
+    );
+    await loadHomework();
+  } catch (error) {
+    if (error.status === 0 || error.status >= 500) {
+      try {
+        const readback = await apiFetch(`/homework/${encodeURIComponent(homeworkId)}`);
+        const confirmed = readback?.success === true && homeworkSubmissionMatches(readback.data?.submission, payload);
+        if (confirmed) {
+          feedback.textContent = 'Submission confirmed from the saved homework record.';
+          const isLate = readback.data.submission.status === 'late';
+          toast.success('Submission confirmed', isLate
+            ? 'Your saved work was received after the deadline and marked late.'
+            : 'Your saved submission was verified.');
+          await loadHomework();
+          return;
+        }
+      } catch (_) {
+        // The original outcome remains uncertain; preserve the draft for review/retry.
+      }
+      feedback.textContent = 'Submission status is uncertain. Your draft is preserved; reload this homework before retrying.';
+      toast.error('Status not confirmed', 'Your draft is preserved. Reload the homework to check whether it was saved before retrying.');
+    } else {
+      feedback.textContent = error.message || 'The submission was rejected.';
+      toast.error('Submission not accepted', error.message || 'The submission was rejected.');
+    }
+  } finally {
+    _homeworkSubmitting.delete(homeworkId);
+    if (button?.isConnected) button.disabled = false;
   }
 };
 
@@ -415,19 +574,30 @@ window.submitHomework = async function(id) {
 async function loadExams() {
   const upEl = document.getElementById('upcomingExamsList');
   const pastEl = document.getElementById('pastExamsList');
+  if (!upEl || !pastEl) return;
   upEl.innerHTML = '<div class="spinner csp-style-c4b102f94c" ></div>';
+  pastEl.textContent = 'Loading published exam schedules…';
 
   try {
-    const data = await apiFetch('/exams/upcoming');
-    const all = data.data || data.exams || [];
+    const response = await apiFetch('/exams');
+    if (response?.success !== true || !Array.isArray(response.data)) {
+      throw new Error('Exam response was invalid.');
+    }
     const now = new Date();
-    const upcoming = all.filter(e => new Date(e.date) >= now);
-    const past = all.filter(e => new Date(e.date) < now);
-
+    const upcoming = [];
+    const past = [];
+    for (const exam of response.data) {
+      const dates = [exam?.startDate, exam?.endDate, ...(Array.isArray(exam?.subjects) ? exam.subjects.map(subject => subject?.date) : [])]
+        .map(value => value ? new Date(value) : null)
+        .filter(value => value && Number.isFinite(value.getTime()));
+      if (!dates.length || dates.some(value => value >= now)) upcoming.push(exam);
+      else past.push(exam);
+    }
     renderExamList(upEl, upcoming, false);
     renderExamList(pastEl, past, true);
   } catch (err) {
-    setEmptyState(upEl, 'file-alt', 'Could not load exams', err.message);
+    setEmptyState(upEl, 'file-alt', 'Could not load exams', escapeStudentPortalText(err.message || 'Exam schedules could not be loaded.'));
+    setEmptyState(pastEl, 'file-alt', 'Could not load exams', escapeStudentPortalText(err.message || 'Exam schedules could not be loaded.'));
   }
 }
 
@@ -437,20 +607,28 @@ function renderExamList(el, items, isPast) {
     return;
   }
   el.innerHTML = items.map(ex => {
-    const d = daysUntil(ex.date);
+    const now = new Date();
+    const dates = [ex.startDate, ...(Array.isArray(ex.subjects) ? ex.subjects.map(subject => subject?.date) : []), ex.endDate]
+      .map(value => value ? new Date(value) : null)
+      .filter(value => value && Number.isFinite(value.getTime()))
+      .sort((left, right) => left - right);
+    const displayDate = dates.find(value => value >= now) || dates[0];
+    const subjectNames = [...new Set((Array.isArray(ex.subjects) ? ex.subjects : [])
+      .map(subject => typeof subject?.subject === 'string' ? subject.subject : subject?.subject?.name)
+      .filter(Boolean))];
+    const d = displayDate ? daysUntil(displayDate) : '';
     return `<div class="card">
       <div class="card-body csp-style-08b2dfc6e6" >
         <div class="csp-style-707acca9c9">
-          <div class="csp-style-a8f751c918">${new Date(ex.date).getDate()}</div>
-          <div class="csp-style-a46b5f5398">${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date(ex.date).getMonth()]}</div>
+          <div class="csp-style-a8f751c918">${displayDate ? displayDate.getDate() : '—'}</div>
+          <div class="csp-style-a46b5f5398">${displayDate ? displayDate.toLocaleString(undefined, { month: 'short' }) : 'Date unavailable'}</div>
         </div>
         <div class="csp-style-83725d2c6e">
-          <div class="csp-style-a1a0dcf46c">${ex.subject||ex.name}</div>
-          <div class="csp-style-d8d87b1b9d">
-            ${ex.examType||''} ${ex.examType&&ex.syllabus?' · ':''} ${ex.syllabus||''}
-          </div>
+          <div class="csp-style-a1a0dcf46c">${escapeStudentPortalText(ex.name || 'Exam')}</div>
+          <div class="csp-style-d8d87b1b9d">${escapeStudentPortalText(ex.examType || 'Exam type unavailable')} · Class ${escapeStudentPortalText(ex.class || '—')} · ${escapeStudentPortalText(ex.academicYear || 'Academic year unavailable')}</div>
+          ${subjectNames.length ? `<div>${escapeStudentPortalText(subjectNames.join(', '))}</div>` : ''}
         </div>
-        ${!isPast ? `<span class="badge badge-info">${d}</span>` : `<span class="badge badge-secondary">Done</span>`}
+        ${!isPast && d ? `<span class="badge badge-info">${escapeStudentPortalText(d)}</span>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -471,57 +649,41 @@ async function loadMyResults() {
 
   const examType = document.getElementById('resultExamFilter')?.value || '';
   try {
-    const data = await apiFetch('/marks/my-marks' + (examType ? `?examType=${encodeURIComponent(examType)}` : ''));
-    const marks = data.data || data.marks || [];
+    const response = await apiFetch('/marks/my-marks' + (examType ? `?examType=${encodeURIComponent(examType)}` : ''));
+    const marks = response?.success === true && Array.isArray(response.data?.marks) ? response.data.marks : null;
+    if (!marks) throw new Error('Results response was invalid.');
 
     if (!marks.length) {
       setEmptyState(el, 'chart-bar', 'No Results Yet', 'Results will be published here after exams are assessed.');
       return;
     }
 
-    const total = marks.reduce((s, m) => s + (m.maxMarks||0), 0);
-    const obtained = marks.reduce((s, m) => s + (m.marksObtained||0), 0);
-    const pct = total > 0 ? (obtained/total*100).toFixed(1) : 0;
-
-    el.innerHTML = `
-      <div class="stat-card primary csp-style-e7e3e005bf" >
-        <div class="stat-icon primary"><i class="fas fa-trophy"></i></div>
-        <div class="stat-content">
-          <div class="stat-value">${pct}%</div>
-          <div class="stat-label">Overall · ${obtained}/${total} marks</div>
+    const records = marks.filter(record => record && Array.isArray(record.subjects));
+    if (!records.length) throw new Error('Published marks did not contain subject results.');
+    el.innerHTML = `<div class="csp-style-2b8334d34f">
+      <a class="btn btn-secondary btn-sm" href="/portal/print/report-card.html">Print my report card</a>
+      ${records.map(record => `<div class="card">
+        <div class="card-header"><strong>${escapeStudentPortalText(record.examType || 'Exam')}</strong> · ${escapeStudentPortalText(record.academicYear || 'Academic year unavailable')}</div>
+        <div class="card-body">
+          <p>Recorded total: ${escapeStudentPortalText(record.obtainedMarks ?? 'Unavailable')} / ${escapeStudentPortalText(record.totalMarks ?? 'Unavailable')}
+            ${typeof record.percentage === 'number' ? `· ${escapeStudentPortalText(record.percentage)}%` : ''}
+            ${record.overallGrade ? `· Grade ${escapeStudentPortalText(record.overallGrade)}` : ''}
+            ${record.result ? `· ${escapeStudentPortalText(record.result)}` : ''}</p>
+          <div class="table-wrapper"><table class="data-table">
+            <thead><tr><th>Subject</th><th>Max Marks</th><th>Obtained</th><th>Grade</th></tr></thead>
+            <tbody>${record.subjects.map(subject => `<tr>
+              <td class="csp-style-6e8bcfac8d">${escapeStudentPortalText(subject?.subject || '—')}</td>
+              <td>${escapeStudentPortalText(subject?.maxMarks ?? 'Unavailable')}</td>
+              <td class="csp-style-c6fa01b3f1">${subject?.isAbsent ? 'Absent' : escapeStudentPortalText(subject?.marksObtained ?? 'Unavailable')}</td>
+              <td><span class="badge badge-primary">${escapeStudentPortalText(subject?.grade || 'Not recorded')}</span></td>
+            </tr>`).join('')}</tbody>
+          </table></div>
         </div>
-      </div>
-      <div class="card">
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead><tr><th>Subject</th><th>Max Marks</th><th>Obtained</th><th>Percentage</th><th>Grade</th></tr></thead>
-            <tbody>${marks.map(m => {
-              const p = m.maxMarks > 0 ? (m.marksObtained/m.maxMarks*100).toFixed(1) : '0.0';
-              const g = m.grade || getGrade(parseFloat(p));
-              const gcls = parseFloat(p) >= 90 ? 'badge-success' : parseFloat(p) >= 75 ? 'badge-info' : parseFloat(p) >= 60 ? 'badge-warning' : 'badge-danger';
-              return `<tr>
-                <td class="csp-style-6e8bcfac8d">${m.subject||'—'}</td>
-                <td>${m.maxMarks}</td>
-                <td class="csp-style-c6fa01b3f1">${m.marksObtained}</td>
-                <td>${p}%</td>
-                <td><span class="badge ${gcls}">${g}</span></td>
-              </tr>`;
-            }).join('')}</tbody>
-          </table>
-        </div>
-      </div>`;
+      </div>`).join('')}
+    </div>`;
   } catch (err) {
-    setEmptyState(el, 'chart-bar', 'Could not load results', err.message);
+    setEmptyState(el, 'chart-bar', 'Could not load results', escapeStudentPortalText(err.message || 'Published results could not be loaded.'));
   }
-}
-
-function getGrade(pct) {
-  if (pct >= 90) return 'A+';
-  if (pct >= 80) return 'A';
-  if (pct >= 70) return 'B+';
-  if (pct >= 60) return 'B';
-  if (pct >= 50) return 'C';
-  return 'F';
 }
 
 /* ── Attendance ── */
@@ -545,16 +707,19 @@ async function loadMyAttendance() {
   calEl.innerHTML = '<div class="spinner csp-style-c4b102f94c" ></div>';
 
   try {
-    const data = await apiFetch(`/attendance/my-monthly?year=${year}&month=${month}`);
-    const rec = data.data || {};
-    const days = rec.records || rec.attendance || [];
+    if (!_studentId) throw new Error('Your student attendance identity is unavailable. Reload the dashboard or contact the school office.');
+    const data = await apiFetch(`/attendance/student/${encodeURIComponent(_studentId)}/monthly?year=${year}&month=${month}`);
+    if (!data || data.success !== true || !Array.isArray(data.data?.records)) {
+      throw new Error('Attendance response is unavailable.');
+    }
+    const days = data.data.records;
 
     // Stats
-    const present = days.filter(d => d.status === 'present').length;
-    const absent  = days.filter(d => d.status === 'absent').length;
-    const late    = days.filter(d => d.status === 'late').length;
-    const total   = days.length;
-    const pct     = total > 0 ? (present/total*100).toFixed(1) : '—';
+    const present = days.filter(d => d.status === 'Present').length;
+    const absent  = days.filter(d => d.status === 'Absent').length;
+    const late    = days.filter(d => d.status === 'Late').length;
+    const total   = days.filter(d => d.status !== 'Holiday').length;
+    const pct     = total > 0 ? ((present + late)/total*100).toFixed(1) : '—';
 
     statsEl.innerHTML = `
       <div class="stat-card success"><div class="stat-icon success"><i class="fas fa-check"></i></div><div class="stat-content"><div class="stat-value">${pct}%</div><div class="stat-label">Attendance</div></div></div>
@@ -575,7 +740,7 @@ function renderAttCalendar(el, year, month, records) {
   const dayMap = {};
   records.forEach(r => {
     const d = new Date(r.date);
-    dayMap[d.getDate()] = r.status;
+    dayMap[d.getDate()] = String(r.status || '').toLowerCase();
   });
 
   const first = new Date(year, month - 1, 1);
@@ -817,7 +982,7 @@ async function submitLeaveApplication() {
 
   setButtonLoading(btn, true);
   try {
-    await apiFetch('/leaves', { method: 'POST', body: JSON.stringify({ fromDate, toDate, leaveType, reason }) });
+    await apiFetch('/leaves', { method: 'POST', body: JSON.stringify({ startDate: fromDate, endDate: toDate, fromDate, toDate, leaveType, reason }) });
     toast.success('Leave Applied', 'Your leave request has been submitted for approval.');
     closeModal('applyLeaveModal');
     document.getElementById('leaveFrom').value = '';

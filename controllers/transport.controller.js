@@ -52,7 +52,7 @@ exports.assignStudent = async (req, res, next) => {
 
 exports.getStudentTransport = async (req, res, next) => {
     try {
-        const transport = await transportService.getStudentTransport(req.params.studentId);
+        const transport = await transportService.getStudentTransport(req.params.studentId, req.user);
         res.status(200).json({ success: true, message: 'Student transport retrieved', data: transport });
     } catch (error) { next(error); }
 };

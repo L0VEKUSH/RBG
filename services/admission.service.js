@@ -1,127 +1,157 @@
+'use strict';
+
 const Admission = require('../models/Admission');
-const User = require('../models/User');
-const Student = require('../models/Student');
-const Parent = require('../models/Parent');
+const Class = require('../models/Class');
+const ErrorResponse = require('../utils/errorResponse');
+const sagaService = require('./admission-saga.service');
+const { resolveEffectiveDate } = require('./enrollment-date.service');
+const { schoolDateKey } = require('../utils/attendance-date');
+
+const ALLOWED_STATUS_TRANSITIONS = Object.freeze({
+  Draft: ['Submitted'],
+  Submitted: ['Under_Review', 'Document_Verification', 'Approved', 'Rejected', 'Waitlisted'],
+  Under_Review: ['Document_Verification', 'Approved', 'Rejected', 'Waitlisted'],
+  Document_Verification: ['Under_Review', 'Approved', 'Rejected', 'Waitlisted'],
+  Waitlisted: ['Under_Review', 'Approved', 'Rejected'],
+  Approved: ['Rejected', 'Waitlisted'],
+  Rejected: [],
+  Admitting: [],
+  Admitted: [],
+});
+
+const APPLICATION_FIELDS = new Set([
+  'studentName', 'dateOfBirth', 'gender', 'classApplyingFor', 'stream',
+  'fatherName', 'fatherOccupation', 'fatherPhone', 'fatherEmail',
+  'motherName', 'motherOccupation', 'motherPhone', 'motherEmail',
+  'guardianName', 'guardianRelation', 'guardianPhone', 'address',
+  'previousSchool', 'documents', 'photo', 'transportRequired', 'siblingInfo',
+]);
+
+const EDITABLE_ADMISSION_FIELDS = new Set([
+  ...APPLICATION_FIELDS,
+  'reviewedBy', 'reviewDate', 'remarks', 'interviewDate', 'interviewRemarks',
+]);
 
 exports.applyForAdmission = async (data) => {
-    return await Admission.create(data);
+  const input = data && typeof data === 'object' ? data : {};
+  if (input.section !== undefined || input.sections !== undefined) {
+    throw new ErrorResponse('Class sections are not supported. RBG School ERP models single undivided classes per level.', 400);
+  }
+  if (input.classApplyingFor !== undefined) {
+    try {
+      input.classApplyingFor = Class.validateAndNormalizeClassWrite(input.classApplyingFor, 'classApplyingFor');
+    } catch (err) {
+      throw new ErrorResponse(err.message, 400);
+    }
+  }
+  const application = {};
+  for (const [field, value] of Object.entries(input)) {
+    if (APPLICATION_FIELDS.has(field)) application[field] = value;
+  }
+  application.status = 'Submitted';
+  return Admission.create(application);
 };
 
-exports.getAllAdmissions = async () => {
-    return await Admission.find();
-};
-
-exports.getAdmissionStats = async () => {
-    return await Admission.aggregate([
-        { $group: { _id: '$status', count: { $sum: 1 } } }
-    ]);
-};
-
-exports.getAdmissionById = async (id) => {
-    return await Admission.findById(id);
-};
+exports.getAllAdmissions = async () => Admission.find();
+exports.getAdmissionStats = async () => Admission.aggregate([
+  { $group: { _id: '$status', count: { $sum: 1 } } },
+]);
+exports.getAdmissionById = async (id) => Admission.findById(id);
 
 exports.updateAdmission = async (id, data) => {
-    return await Admission.findByIdAndUpdate(id, data, { new: true });
-};
-
-exports.updateAdmissionStatus = async (id, status) => {
-    return await Admission.findByIdAndUpdate(id, { status }, { new: true });
-};
-
-const Counter = require('../models/Counter');
-
-exports.admitStudent = async (id) => {
-    const admission = await Admission.findById(id);
-    if (!admission) throw new Error('Admission not found');
-    if (admission.status !== 'Approved') throw new Error('Admission must be approved first');
-
-    const academicYear = '2026-2027'; // Hardcoded for this context, ideally fetched from settings
-    const counterId = `rollNumber_${academicYear}_${admission.classApplyingFor}`;
-    
-    // Atomically increment and fetch roll number
-    const counter = await Counter.findByIdAndUpdate(
-        counterId,
-        { $inc: { seq: 1 } },
-        { new: true, upsert: true }
-    );
-    const rollNumber = counter.seq;
-
-    let studentUser, parentUser, parent, student;
+  const input = data && typeof data === 'object' ? data : {};
+  if (input.section !== undefined || input.sections !== undefined) {
+    throw new ErrorResponse('Class sections are not supported. RBG School ERP models single undivided classes per level.', 400);
+  }
+  const forbidden = [
+    'status', 'createdStudent', 'admissionSaga', 'applicationNumber',
+    'enrollmentEffectiveFrom', 'enrollmentAcademicYear',
+  ];
+  if (forbidden.some((field) => Object.prototype.hasOwnProperty.call(input, field))) {
+    throw new ErrorResponse('Admission workflow fields cannot be changed through this endpoint.', 400);
+  }
+  if (input.classApplyingFor !== undefined) {
     try {
-        studentUser = await User.create({
-            name: admission.studentName,
-            email: admission.studentEmail || `student_${Date.now()}@sunriseschool.edu.in`, 
-            password: 'Password@123', 
-            role: 'student'
-        });
-
-        const parentName = admission.fatherName || admission.motherName || admission.guardianName || 'Parent';
-        const parentEmail = admission.fatherEmail || admission.motherEmail || `parent_${studentUser._id}@sunriseschool.edu.in`;
-        
-        parentUser = await User.findOne({ email: parentEmail });
-        if (!parentUser) {
-            parentUser = await User.create({
-                name: parentName,
-                email: parentEmail,
-                password: 'Password@123',
-                role: 'parent'
-            });
-        }
-
-        parent = await Parent.findOne({ user: parentUser._id });
-        if (!parent) {
-            parent = await Parent.create({
-                user: parentUser._id,
-                children: [],
-                contactNumber: admission.fatherPhone || admission.motherPhone || '0000000000'
-            });
-        }
-
-        student = await Student.create({
-            user: studentUser._id,
-            parentUser: parentUser._id,
-            class: admission.classApplyingFor,
-            stream: admission.stream || 'N/A',
-            rollNumber: rollNumber,
-            academicYear: academicYear,
-            father: { name: admission.fatherName || 'Not Provided', phone: admission.fatherPhone, email: admission.fatherEmail },
-            mother: { name: admission.motherName || 'Not Provided', phone: admission.motherPhone, email: admission.motherEmail }
-        });
-
-        if (!parent.children.includes(student._id)) {
-            parent.children.push(student._id);
-            await parent.save();
-        }
-
-        admission.status = 'Admitted';
-        admission.createdStudent = student._id;
-        await admission.save();
-
-        // Create initial fee setup
-        const FeeStructure = require('../models/FeeStructure');
-        const StudentFee = require('../models/StudentFee');
-        const feeStructure = await FeeStructure.findOne({ class: student.class, academicYear: student.academicYear, isActive: true });
-        if (feeStructure) {
-            const totalAmount = feeStructure.components ? feeStructure.components.reduce((acc, curr) => acc + (curr.amount || 0), 0) : 0;
-            await StudentFee.create({
-                student: student._id,
-                feeStructure: feeStructure._id,
-                class: student.class,
-                academicYear: student.academicYear,
-                totalAmount: totalAmount,
-                status: 'Pending'
-            });
-        }
-
-        return student;
-    } catch (error) {
-        // Safe rollback
-        if (student) await Student.findByIdAndDelete(student._id);
-        if (studentUser) await User.findByIdAndDelete(studentUser._id);
-        // We do not delete parentUser/parent as they might be linked to other siblings
-        // Revert counter to avoid skipping roll numbers, though small gaps are typically acceptable
-        await Counter.findByIdAndUpdate(counterId, { $inc: { seq: -1 } });
-        throw error;
+      input.classApplyingFor = Class.validateAndNormalizeClassWrite(input.classApplyingFor, 'classApplyingFor');
+    } catch (err) {
+      throw new ErrorResponse(err.message, 400);
     }
+  }
+  const update = {};
+  for (const [field, value] of Object.entries(input)) {
+    if (EDITABLE_ADMISSION_FIELDS.has(field)) update[field] = value;
+  }
+  if (!Object.keys(update).length) throw new ErrorResponse('No editable admission fields were provided.', 400);
+  const admission = await Admission.findOneAndUpdate(
+    { _id: id, status: { $nin: ['Admitting', 'Admitted'] } },
+    { $set: update },
+    { new: true, runValidators: true }
+  );
+  if (!admission) throw new ErrorResponse('Admission not found or cannot be edited in its current state.', 409);
+  return admission;
 };
+
+exports.updateAdmissionStatus = async (id, nextStatus, enrollmentEffectiveFrom) => {
+  if (typeof nextStatus !== 'string' || !Object.prototype.hasOwnProperty.call(ALLOWED_STATUS_TRANSITIONS, nextStatus)) {
+    throw new ErrorResponse('Invalid admission status.', 400);
+  }
+  if (enrollmentEffectiveFrom !== undefined && nextStatus !== 'Approved') {
+    throw new ErrorResponse('Enrollment date can only be set while approving an admission.', 400);
+  }
+  const current = await Admission.findById(id).select('status enrollmentEffectiveFrom enrollmentAcademicYear');
+  if (!current) throw new ErrorResponse('Admission not found.', 404);
+  if (current.status === nextStatus && nextStatus !== 'Approved') return current;
+  if (!(ALLOWED_STATUS_TRANSITIONS[current.status] || []).includes(nextStatus)) {
+    if (!(current.status === 'Approved' && nextStatus === 'Approved')) {
+      throw new ErrorResponse('Invalid admission status transition.', 400);
+    }
+  }
+
+  if (nextStatus === 'Approved') {
+    const storedDateKey = current.enrollmentEffectiveFrom
+      ? schoolDateKey(current.enrollmentEffectiveFrom)
+      : null;
+    const requestedDate = enrollmentEffectiveFrom;
+    if (!storedDateKey && requestedDate === undefined) {
+      throw new ErrorResponse('An explicit school-local enrollment date is required for approval.', 400);
+    }
+    if (storedDateKey && requestedDate === undefined && current.enrollmentAcademicYear) return current;
+
+    const resolved = await resolveEffectiveDate(requestedDate === undefined ? storedDateKey : requestedDate);
+    if (storedDateKey && resolved.dateKey !== storedDateKey) {
+      throw new ErrorResponse('The approved enrollment date is already fixed and cannot be changed.', 409);
+    }
+    if (current.enrollmentAcademicYear && current.enrollmentAcademicYear !== resolved.academicYear) {
+      throw new ErrorResponse('The approved academic year is already fixed and cannot be changed.', 409);
+    }
+
+    const filter = { _id: id, status: current.status };
+    if (storedDateKey) {
+      filter.enrollmentEffectiveFrom = current.enrollmentEffectiveFrom;
+    } else {
+      filter.enrollmentEffectiveFrom = null;
+    }
+    if (current.enrollmentAcademicYear) filter.enrollmentAcademicYear = current.enrollmentAcademicYear;
+    const updated = await Admission.findOneAndUpdate(filter, {
+      $set: {
+        status: nextStatus,
+        enrollmentEffectiveFrom: resolved.effectiveFrom,
+        enrollmentAcademicYear: resolved.academicYear,
+      },
+    }, { new: true, runValidators: true });
+    if (!updated) throw new ErrorResponse('Admission changed concurrently; reload and retry.', 409);
+    return updated;
+  }
+
+  const updated = await Admission.findOneAndUpdate(
+    { _id: id, status: current.status },
+    { $set: { status: nextStatus } },
+    { new: true, runValidators: true }
+  );
+  if (!updated) throw new ErrorResponse('Admission status changed concurrently; reload and retry.', 409);
+  return updated;
+};
+
+exports.admitStudent = sagaService.admitStudent;
+exports.recoverStaleAdmissionSagas = sagaService.recoverStaleAdmissionSagas;
+exports.setSagaTestHook = sagaService.setSagaTestHook;

@@ -54,6 +54,7 @@ const examSchema = new mongoose.Schema({
 });
 
 examSchema.index({ class: 1, academicYear: 1 });
+examSchema.index({ class: 1, academicYear: 1, examType: 1 }, { unique: true });
 examSchema.index({ startDate: 1 });
 examSchema.index({ status: 1 });
 

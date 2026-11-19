@@ -143,12 +143,12 @@ async function run() {
   const marksCreate = await api('POST', '/marks', marksPayload, TEACHER_TOKEN);
   check('Teacher enters marks', marksCreate.status === 200 || marksCreate.status === 201);
 
-  // 1j. Verify CBSE grade computed by backend
+  // 1j. VerifyUP Board grade computed by backend
   // Response shape: { data: { marks: { subjects: [...] } } } or { data: { subjects: [...] } }
   const marksBody = marksCreate.data?.data?.marks || marksCreate.data?.data || {};
   const marksSubjects = marksBody.subjects || [];
   const savedGrade = marksSubjects[0]?.grade;
-  check('Backend computed CBSE grade (A1 for 92%)', savedGrade === 'A1');
+  check('Backend computedUP Board grade (A1 for 92%)', savedGrade === 'A1');
   const savedOverall = marksBody.overallGrade;
   check('Backend computed overall grade',  !!savedOverall);
 
@@ -273,7 +273,7 @@ async function run() {
   const ut1 = Array.isArray(marksAfter) ? marksAfter.find(m => m.examType === 'Unit Test 1') : null;
   check('Student sees Unit Test 1 after publish', !!ut1);
 
-  // Verify CBSE grade from seed is correct (88% Math → A2)
+  // VerifyUP Board grade from seed is correct (88% Math → A2)
   if (ut1?.subjects) {
     const mathGrade = ut1.subjects.find(s => s.subject === 'Mathematics')?.grade;
     check(`Math 88% → grade is A2 (got ${mathGrade})`, mathGrade === 'A2');

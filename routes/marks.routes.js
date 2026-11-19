@@ -12,7 +12,7 @@ router.use(protect);
 router.get('/my-marks', requirePermission('results.view-own'), getMyMarks);
 router.get('/class/:class', requirePermission('marks.view', 'results.view'), requireClassAccess('class'), getClassMarks);
 router.get('/stats', requirePermission('results.view'), getClassStats);
-router.post('/publish', requirePermission('results.publish'), publishMarks);
+router.post('/publish', requireRole('super_admin', 'admin', 'principal', 'exam_coordinator'), requirePermission('results.publish'), publishMarks);
 router.post('/rank', requirePermission('results.generate'), computeRank);
 
 router.route('/')

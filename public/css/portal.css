@@ -480,6 +480,7 @@ ul { list-style: none; }
 .form-control:disabled { background: var(--bg); opacity: .7; cursor: not-allowed; }
 textarea.form-control { resize: vertical; min-height: 90px; }
 select.form-control { cursor: pointer; }
+.academic-year-form-error { color: var(--danger); font-size: .85rem; margin-bottom: 1rem; }
 
 .form-error { font-size: .72rem; color: var(--danger); margin-top: .3rem; display: none; }
 .form-error.visible { display: block; }

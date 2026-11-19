@@ -3,14 +3,14 @@ const ErrorResponse = require('../utils/errorResponse');
 
 exports.getAttendanceReport = async (req, res, next) => {
     try {
-        const report = await reportService.getAttendanceReport(req.query);
+        const report = await reportService.getAttendanceReport(req.query, req.user);
         res.status(200).json({ success: true, message: 'Attendance report generated', data: report });
     } catch (error) { next(error); }
 };
 
 exports.getMarksReport = async (req, res, next) => {
     try {
-        const report = await reportService.getMarksReport(req.query);
+        const report = await reportService.getMarksReport(req.query, req.user);
         res.status(200).json({ success: true, message: 'Marks report generated', data: report });
     } catch (error) { next(error); }
 };

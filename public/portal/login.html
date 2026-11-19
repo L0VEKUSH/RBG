@@ -1,67 +1,109 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — RBG School</title>
+  <meta name="referrer" content="no-referrer">
+  <title>RBG School Portal | Sign in</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/vendor/@fortawesome/fontawesome-free/css/all.min.css">
-    <link rel="stylesheet" href="/css/csp-hardening.css">
-  
+  <link rel="stylesheet" href="/css/csp-hardening.css">
+  <link rel="stylesheet" href="/css/portal-login.css">
 </head>
-<body>
+<body class="portal-login-page">
+  <main class="portal-auth-shell">
+    <a class="school-brand" href="/" aria-label="RBG School home">
+      <span class="school-brand-mark" aria-hidden="true"><i class="fas fa-graduation-cap"></i></span>
+      <span class="school-brand-name">RBG School</span>
+    </a>
 
-  <div class="login-container">
-    <div class="login-brand">
-      <i class="fas fa-graduation-cap"></i>
-      <h1>RBG School</h1>
-      <p>K-12 School Management Portal<br>Empowering education through technology.</p>
-    </div>
-    <div class="login-form-wrap">
-      <h2>Welcome Back</h2>
-      <p>Sign in to your account</p>
-      
-      <div class="alert-error" id="loginError">
-        <i class="fas fa-exclamation-circle"></i><span id="loginErrorMsg"></span>
+    <section id="portalSelection" class="portal-selection" aria-labelledby="portalSelectionTitle">
+      <p class="eyebrow">Secure school access</p>
+      <h1 id="portalSelectionTitle">Choose your portal</h1>
+      <p class="section-intro">Select the portal for your school account to continue.</p>
+
+      <div class="portal-card-grid">
+        <button class="portal-card" type="button" data-portal-id="administrator">
+          <span class="portal-card-icon" aria-hidden="true"><i class="fas fa-shield-alt"></i></span>
+          <span class="portal-card-copy"><span class="portal-card-title">Administrator</span><span class="portal-card-description">School administration</span></span>
+          <i class="fas fa-arrow-right portal-card-arrow" aria-hidden="true"></i>
+        </button>
+        <button class="portal-card" type="button" data-portal-id="principal">
+          <span class="portal-card-icon" aria-hidden="true"><i class="fas fa-school"></i></span>
+          <span class="portal-card-copy"><span class="portal-card-title">Principal</span><span class="portal-card-description">School leadership</span></span>
+          <i class="fas fa-arrow-right portal-card-arrow" aria-hidden="true"></i>
+        </button>
+        <button class="portal-card" type="button" data-portal-id="admission_officer">
+          <span class="portal-card-icon" aria-hidden="true"><i class="fas fa-user-plus"></i></span>
+          <span class="portal-card-copy"><span class="portal-card-title">Admission Officer</span><span class="portal-card-description">Admissions portal</span></span>
+          <i class="fas fa-arrow-right portal-card-arrow" aria-hidden="true"></i>
+        </button>
+        <button class="portal-card" type="button" data-portal-id="teacher">
+          <span class="portal-card-icon" aria-hidden="true"><i class="fas fa-chalkboard-teacher"></i></span>
+          <span class="portal-card-copy"><span class="portal-card-title">Teacher / Class Teacher</span><span class="portal-card-description">Teaching portal</span></span>
+          <i class="fas fa-arrow-right portal-card-arrow" aria-hidden="true"></i>
+        </button>
+        <button class="portal-card" type="button" data-portal-id="student">
+          <span class="portal-card-icon" aria-hidden="true"><i class="fas fa-user-graduate"></i></span>
+          <span class="portal-card-copy"><span class="portal-card-title">Student</span><span class="portal-card-description">Student portal</span></span>
+          <i class="fas fa-arrow-right portal-card-arrow" aria-hidden="true"></i>
+        </button>
+        <button class="portal-card" type="button" data-portal-id="parent">
+          <span class="portal-card-icon" aria-hidden="true"><i class="fas fa-users"></i></span>
+          <span class="portal-card-copy"><span class="portal-card-title">Parent</span><span class="portal-card-description">Parent portal</span></span>
+          <i class="fas fa-arrow-right portal-card-arrow" aria-hidden="true"></i>
+        </button>
+        <button class="portal-card portal-card-other" type="button" data-portal-id="other_staff">
+          <span class="portal-card-icon" aria-hidden="true"><i class="fas fa-briefcase"></i></span>
+          <span class="portal-card-copy"><span class="portal-card-title">Other Staff</span><span class="portal-card-description">Finance, library, transport, and staff portals</span></span>
+          <i class="fas fa-arrow-right portal-card-arrow" aria-hidden="true"></i>
+        </button>
+      </div>
+    </section>
+
+    <section id="loginPanel" class="login-panel" aria-labelledby="loginTitle" hidden>
+      <button id="backToPortals" class="back-button" type="button">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to portal selection
+      </button>
+      <p id="selectedPortalLabel" class="eyebrow">Portal</p>
+      <h1 id="loginTitle">Sign in</h1>
+      <p id="loginDescription" class="section-intro">Use your school account to continue.</p>
+
+      <div id="loginError" class="login-error" role="alert" aria-live="assertive" hidden>
+        <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+        <span id="loginErrorMessage"></span>
       </div>
 
       <form id="loginForm">
         <div class="form-group">
-          <label for="email">Email Address</label>
-          <input type="email" class="form-control" id="email" required autocomplete="username" placeholder="name@sunriseschool.edu.in">
+          <label for="email">Email address</label>
+          <input type="email" class="form-control" id="email" required autocomplete="username" placeholder="you@example.com">
         </div>
         <div class="form-group">
           <label for="password">Password</label>
-          <div class="input-icon-wrap">
-            <input type="password" class="form-control" id="password" required autocomplete="current-password" placeholder="Enter password">
-            <i class="fas fa-eye csp-action-target" id="pwIcon" data-csp-action-click="togglePassword" data-csp-args-click="%5B%5D" role="button" tabindex="0"></i>
+          <div class="password-field">
+            <input type="password" class="form-control" id="password" required autocomplete="current-password" placeholder="Enter your password">
+            <button id="togglePassword" class="password-toggle" type="button" aria-label="Show password" aria-pressed="false">
+              <i class="fas fa-eye" aria-hidden="true"></i>
+            </button>
           </div>
         </div>
-        <div class="csp-style-4df5888cbc">
-          <label class="csp-style-708fc57bab"><input type="checkbox"> Remember me</label>
-          <a href="#" class="csp-style-f1acda8972" data-csp-action-click="showAlert" data-csp-args-click="%5B%22Please%20contact%20your%20administrator%20to%20reset%20your%20password.%22%5D">Forgot password?</a>
+        <div class="recovery-row">
+          <button id="forgotPasswordButton" class="text-button" type="button">Forgot password?</button>
         </div>
-        
-        <button type="submit" class="btn-login" id="btnLogin">Sign In <i class="fas fa-arrow-right"></i></button>
-      </form>
-      
-      <div class="demo-section">
-        <h3><i class="fas fa-vial"></i> Demo Accounts</h3>
-        <div class="demo-pills">
-          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22admin%40sunriseschool.edu.in%22%2C%22Admin%401234%22%5D">Super Admin</button>
-          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22principal%40sunriseschool.edu.in%22%2C%22Principal%401234%22%5D">Principal</button>
-          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22teacher%40sunriseschool.edu.in%22%2C%22Teacher%401234%22%5D">Teacher</button>
-          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22student%40sunriseschool.edu.in%22%2C%22Student%401234%22%5D">Student</button>
-          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22parent%40sunriseschool.edu.in%22%2C%22Parent%401234%22%5D">Parent</button>
-          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22accountant%40sunriseschool.edu.in%22%2C%22Accountant%401234%22%5D">Finance</button>
-          <button class="demo-pill" data-csp-action-click="fillDemo" data-csp-args-click="%5B%22librarian%40sunriseschool.edu.in%22%2C%22Librarian%401234%22%5D">Library</button>
-        </div>
-      </div>
-    </div>
-  </div>
+        <p id="forgotPasswordStatus" class="recovery-status" role="status" aria-live="polite" hidden></p>
 
-  <script src="/js/csp-actions.js"></script>
+        <button type="submit" class="submit-button" id="btnLogin">
+          <span id="loginButtonLabel">Sign in</span>
+          <i id="loginButtonIcon" class="fas fa-arrow-right" aria-hidden="true"></i>
+        </button>
+      </form>
+    </section>
+
+    <footer class="portal-footer">RBG School · Authorized portal access</footer>
+  </main>
+
   <script src="/js/login.js"></script>
 </body>
 </html>

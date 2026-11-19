@@ -1,4 +1,5 @@
 const studentService = require('../services/student.service');
+const ErrorResponse = require('../utils/errorResponse');
 
 /**
  * @desc    Create student
@@ -6,8 +7,10 @@ const studentService = require('../services/student.service');
  * @access  Private (Admin)
  */
 exports.createStudent = async (req, res, next) => {
-  const student = await studentService.createStudent(req.body, req.user.id);
-  res.status(201).json({ success: true, message: 'Student created successfully', data: { student } });
+  res.status(410).json({
+    success: false,
+    message: 'Password-based account creation is disabled. Use the Student invitation workflow; the account owner sets their password during activation.',
+  });
 };
 
 /**
@@ -16,35 +19,7 @@ exports.createStudent = async (req, res, next) => {
  * @access  Private (Admin, Faculty)
  */
 exports.getAllStudents = async (req, res) => {
-  
-  // Scope the query based on role
-  if (['teacher', 'class_teacher', 'faculty'].includes(req.user.role)) {
-    const Faculty = require('../models/Faculty');
-    const SubjectAllocation = require('../models/SubjectAllocation');
-    const faculty = await Faculty.findOne({ user: req.user._id });
-    if (faculty) {
-      let allowedClasses = [];
-      if (faculty.classTeacherOf && faculty.classTeacherOf.class) allowedClasses.push(faculty.classTeacherOf.class);
-      const allocations = await SubjectAllocation.find({ teacher: faculty._id }).distinct('class');
-      allowedClasses = [...new Set([...allowedClasses, ...allocations])];
-      
-      req.query.class = { $in: allowedClasses };
-    }
-  } else if (req.user.role === 'parent') {
-    const Parent = require('../models/Parent');
-    const parent = await Parent.findOne({ user: req.user._id });
-    if (parent && parent.children) {
-      req.query._id = { $in: parent.children };
-    }
-  } else if (req.user.role === 'student') {
-    const Student = require('../models/Student');
-    const st = await Student.findOne({ user: req.user._id });
-    if (st) {
-      req.query._id = st._id;
-    }
-  }
-  
-  const result = await studentService.getAllStudents(req.query);
+  const result = await studentService.getAllStudents(req.query, req.user);
 
   res.status(200).json({ success: true, ...result });
 };
@@ -55,7 +30,7 @@ exports.getAllStudents = async (req, res) => {
  * @access  Private
  */
 exports.getStudentById = async (req, res) => {
-  const student = await studentService.getStudentById(req.params.id);
+  const student = await studentService.getStudentById(req.params.id, req.user);
   res.status(200).json({ success: true, data: { student } });
 };
 
@@ -86,7 +61,8 @@ exports.deleteStudent = async (req, res) => {
  */
 exports.getStudentsByClass = async (req, res) => {
   const { academicYear } = req.query;
-  const students = await studentService.getStudentsByClass(req.params.class, academicYear);
+  const includeInactive = req.query.includeInactive === 'true';
+  const students = await studentService.getStudentsByClass(req.params.class, academicYear, req.user, { includeInactive });
   res.status(200).json({ success: true, count: students.length, data: { students } });
 };
 
@@ -96,9 +72,30 @@ exports.getStudentsByClass = async (req, res) => {
  * @access  Private (Admin)
  */
 exports.promoteStudents = async (req, res) => {
-  const { studentIds, newClass, newAcademicYear } = req.body;
-  const students = await studentService.promoteStudents(studentIds, newClass, newAcademicYear);
-  res.status(200).json({ success: true, message: `${students.length} students promoted`, data: { students } });
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const { studentIds, newClass, newAcademicYear, sourceAcademicYear, sourceClass } = body;
+  try {
+    const students = await studentService.promoteStudents(studentIds, newClass, newAcademicYear, {
+      sourceAcademicYear,
+      sourceClass,
+      actor: req.user,
+      auditContext: {
+        ipAddress: req.ip,
+        userAgent: typeof req.get === 'function' ? req.get('user-agent') : null,
+      },
+    });
+    res.status(200).json({
+      success: true,
+      message: `${students.length} students promoted successfully`,
+      data: { students, promotedCount: students.length },
+    });
+  } catch (error) {
+    const isOperational = Boolean(error && error.isOperational);
+    res.status(isOperational ? error.statusCode : 500).json({
+      success: false,
+      message: isOperational ? error.message : 'Promotion failed. No students were promoted.',
+    });
+  }
 };
 
 /**
@@ -116,9 +113,8 @@ exports.issueTC = async (req, res) => {
  * @route   PUT /api/v1/students/:id/fees
  * @access  Private (Admin)
  */
-exports.updateFeePayment = async (req, res) => {
-  const student = await studentService.updateFeePayment(req.params.id, req.body.amount);
-  res.status(200).json({ success: true, message: 'Fee payment updated', data: { student } });
+exports.updateFeePayment = async (req, res, next) => {
+  return next(new ErrorResponse('Legacy student fee writes are retired; use the fee ledger payment endpoint', 410));
 };
 
 /**
@@ -144,4 +140,87 @@ exports.getMyProfile = async (req, res) => {
     return res.status(404).json({ success: false, message: 'Student profile not found' });
   }
   res.status(200).json({ success: true, data: { student } });
+};
+
+/**
+ * @desc    Upload student document
+ * @route   POST /api/v1/students/:id/documents
+ * @access  Private (Staff with students.update)
+ */
+exports.uploadStudentDocument = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return next(new ErrorResponse('Please select a document to upload', 400));
+    }
+    const Student = require('../models/Student');
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return next(new ErrorResponse('Student not found', 404));
+    }
+    const uploadService = require('../services/upload.service');
+    const saved = await uploadService.saveFile(req.file, 'documents');
+    try {
+      const docName = (req.body && typeof req.body.name === 'string' && req.body.name.trim())
+        ? req.body.name.trim()
+        : req.file.originalname || 'Student Document';
+      student.documents.push({
+        name: docName,
+        url: saved.url,
+        uploadedAt: new Date(),
+      });
+      await student.save();
+    } catch (dbErr) {
+      await uploadService.deleteFile(saved.filename, 'documents');
+      throw dbErr;
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Student document uploaded',
+      data: student.documents,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @desc    Delete student document
+ * @route   DELETE /api/v1/students/:id/documents/:documentId
+ * @access  Private (Staff with students.update)
+ */
+exports.deleteStudentDocument = async (req, res, next) => {
+  try {
+    const Student = require('../models/Student');
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return next(new ErrorResponse('Student not found', 404));
+    }
+    const doc = student.documents.id
+      ? student.documents.id(req.params.documentId)
+      : (student.documents || []).find(d => String(d._id) === String(req.params.documentId));
+    if (!doc) {
+      return next(new ErrorResponse('Document not found', 404));
+    }
+    const docUrl = doc.url;
+    if (student.documents.pull) {
+      student.documents.pull(req.params.documentId);
+    } else {
+      student.documents = student.documents.filter(d => String(d._id) !== String(req.params.documentId));
+    }
+    await student.save();
+
+    if (docUrl) {
+      const uploadService = require('../services/upload.service');
+      await uploadService.safeDeleteOldUpload(docUrl);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Student document deleted',
+      data: student.documents,
+    });
+  } catch (err) {
+    next(err);
+  }
 };

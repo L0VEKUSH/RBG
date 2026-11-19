@@ -25,6 +25,40 @@ const PARENT_NAV = [
   ]},
 ];
 
+const isKnownParentAmount = value => typeof value === 'number' && Number.isFinite(value);
+const displayParentAmount = value => isKnownParentAmount(value) ? formatCurrency(value) : 'Unavailable';
+const PARENT_TIMETABLE_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function groupParentSchedulesByDay(schedules) {
+  const grouped = Object.fromEntries(PARENT_TIMETABLE_DAYS.map(day => [day, []]));
+  if (!Array.isArray(schedules)) return grouped;
+
+  for (const schedule of schedules) {
+    if (!schedule || !Object.prototype.hasOwnProperty.call(grouped, schedule.day) || !Array.isArray(schedule.periods)) continue;
+    for (const period of schedule.periods) {
+      if (!period || typeof period !== 'object') continue;
+      const teacher = period.teacher;
+      grouped[schedule.day].push({
+        ...period,
+        teacher: typeof teacher === 'string'
+          ? teacher
+          : teacher?.user?.name || teacher?.name || teacher?.designation || '',
+      });
+    }
+  }
+
+  for (const periods of Object.values(grouped)) {
+    periods.sort((left, right) => Number(left.periodNumber || 0) - Number(right.periodNumber || 0));
+  }
+  return grouped;
+}
+
+function escapeParentTimetableText(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]);
+}
+
 let _children = [];
 let _activeChildId = null;
 let _activeChildData = null; // store current child's profile object
@@ -142,9 +176,9 @@ async function loadDashboardContent() {
     renderAttendanceChart(d.attendanceHistory || []);
     
     // Right lists
-    loadRecentPayments(d.recentPayments || []);
-    loadHomeworkWidget(d.pendingHomework || []);
-    loadResultsWidget(d.recentResults || []);
+    loadRecentPayments(d.recentPayments);
+    loadHomeworkWidget(d.pendingHomework);
+    loadResultsWidget(d.recentResults);
     loadRecentNotices('dashNotices', 3);
     
   } catch (err) {
@@ -156,12 +190,12 @@ function renderAlertBanners(d) {
   const container = document.getElementById('alertBanners');
   let html = '';
 
-  if (d.feeStatus && d.feeStatus.pending > 0) {
+  if (isKnownParentAmount(d.feeStatus?.pending) && d.feeStatus.pending > 0) {
     html += `<div class="alert-banner danger">
       <i class="fas fa-exclamation-circle"></i><div class="alert-banner-content"><strong>Fee Payment Due</strong>${formatCurrency(d.feeStatus.pending)} outstanding for ${_activeChildData?.name}.</div>
     </div>`;
   }
-  if (d.attendancePct !== undefined && d.attendancePct < 75) {
+  if (typeof d.attendancePct === 'number' && d.attendancePct < 75) {
     html += `<div class="alert-banner warning">
       <i class="fas fa-exclamation-triangle"></i><div class="alert-banner-content"><strong>Low Attendance Alert</strong>Attendance is ${d.attendancePct.toFixed(1)}%.</div>
     </div>`;
@@ -177,22 +211,24 @@ function renderAlertBanners(d) {
 
 function renderDashboardStats(d) {
   const grid = document.getElementById('dashStats');
-  const att = d.attendancePct !== undefined ? d.attendancePct.toFixed(1) + '%' : '—';
-  const attColor = (d.attendancePct || 0) >= 75 ? 'success' : 'danger';
-  const feeColor = (d.feeStatus?.pending || 0) > 0 ? 'danger' : 'success';
+  const att = typeof d.attendancePct === 'number' ? d.attendancePct.toFixed(1) + '%' : 'Unavailable';
+  const attColor = typeof d.attendancePct !== 'number' ? 'info' : d.attendancePct >= 75 ? 'success' : 'danger';
+  const feePending = d.feeStatus?.pending;
+  const feeColor = !isKnownParentAmount(feePending) ? 'info' : feePending > 0 ? 'danger' : 'success';
 
   grid.innerHTML = `
     <div class="stat-card ${attColor}"><div class="stat-icon ${attColor}"><i class="fas fa-calendar-check"></i></div><div class="stat-content"><div class="stat-value">${att}</div><div class="stat-label">Attendance</div></div></div>
     <div class="stat-card warning"><div class="stat-icon warning"><i class="fas fa-book"></i></div><div class="stat-content"><div class="stat-value">${d.homeworkPending ?? '—'}</div><div class="stat-label">Pending HW</div></div></div>
-    <div class="stat-card ${feeColor}"><div class="stat-icon ${feeColor}"><i class="fas fa-rupee-sign"></i></div><div class="stat-content"><div class="stat-value csp-style-08ad8b53af" >${formatCurrency(d.feeStatus?.pending||0)}</div><div class="stat-label">Fee Pending</div></div></div>
-    <div class="stat-card info"><div class="stat-icon info"><i class="fas fa-file-alt"></i></div><div class="stat-content"><div class="stat-value">${d.upcomingExams ?? '0'}</div><div class="stat-label">Next Exam</div></div></div>
+    <div class="stat-card ${feeColor}"><div class="stat-icon ${feeColor}"><i class="fas fa-rupee-sign"></i></div><div class="stat-content"><div class="stat-value csp-style-08ad8b53af" >${displayParentAmount(feePending)}</div><div class="stat-label">Fee Pending</div></div></div>
+    <div class="stat-card info"><div class="stat-icon info"><i class="fas fa-file-alt"></i></div><div class="stat-content"><div class="stat-value">${d.upcomingExams ?? 'Unavailable'}</div><div class="stat-label">Next Exam</div></div></div>
   `;
 }
 
 function renderAttendanceChart(history) {
   if (!history || history.length === 0) {
-    // Generate dummy trend if none provided by API for visuals
-    history = [80, 85, 82, 88, 90, 85, 92]; 
+    const chartContainer = document.getElementById('dashAttChart')?.parentElement;
+    if (chartContainer) chartContainer.textContent = 'Attendance history is unavailable.';
+    return;
   }
   const labels = history.map((_, i) => 'Week ' + (i+1));
   createLineChart('dashAttChart', labels, [{
@@ -202,6 +238,7 @@ function renderAttendanceChart(history) {
 
 function loadRecentPayments(payments) {
   const el = document.getElementById('dashPayments');
+  if (!Array.isArray(payments)) { setEmptyState(el, 'receipt', 'Unavailable', 'Recent payments are not provided by this dashboard.'); return; }
   if (!payments.length) { setEmptyState(el, 'receipt', 'No Payments', 'No recent payment history.'); return; }
   el.innerHTML = payments.slice(0,3).map(p => `
     <div class="csp-style-933d28940c">
@@ -212,6 +249,7 @@ function loadRecentPayments(payments) {
 
 function loadHomeworkWidget(hw) {
   const el = document.getElementById('dashHomework');
+  if (!Array.isArray(hw)) { setEmptyState(el, 'book', 'Unavailable', 'Homework details are not provided by this dashboard.'); return; }
   if (!hw.length) { setEmptyState(el, 'check-circle', 'All Clear', 'No pending homework.'); return; }
   el.innerHTML = hw.slice(0,3).map(h => `
     <div class="csp-style-cfb951fb32">
@@ -225,6 +263,7 @@ function loadHomeworkWidget(hw) {
 
 function loadResultsWidget(res) {
   const el = document.getElementById('dashResults');
+  if (!Array.isArray(res)) { setEmptyState(el, 'chart-bar', 'Unavailable', 'Recent results are not provided by this dashboard.'); return; }
   if (!res.length) { setEmptyState(el, 'chart-bar', 'No Results', ''); return; }
   el.innerHTML = res.slice(0,3).map(r => {
     const pct = r.maxMarks > 0 ? Math.round(r.marksObtained/r.maxMarks*100) : 0;
@@ -245,17 +284,24 @@ async function loadAcademics() {
   content.innerHTML = '<div class="spinner csp-style-c4b102f94c" ></div>';
   
   try {
-    const data = await apiFetch(`/timetable/class/${_activeChildData.class}`);
-    const ttData = data.data || {};
-    const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const today = getTodayDayName();
+    const className = encodeURIComponent(_activeChildData.class || '');
+    const academicYear = encodeURIComponent(_activeChildData.academicYear || '');
+    if (!className || !academicYear) throw new Error('The selected child’s class and academic year are unavailable.');
+    const data = await apiFetch(`/timetable/class/${className}?academicYear=${academicYear}`);
+    if (data?.success !== true || !Array.isArray(data.data)) throw new Error('Timetable response was invalid.');
+    const ttData = groupParentSchedulesByDay(data.data);
+    const days = PARENT_TIMETABLE_DAYS;
+    const today = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Kolkata',
+      weekday: 'long',
+    }).format(new Date());
     
     tabs.innerHTML = days.map(d => `<button class="tab-btn ${d===today?'active':''}" aria-label="${d}" ${cspActionAttrs("showParentTimetableDay", ['${encodeURIComponent(JSON.stringify(ttData[d]||[]))}'], "click", [0], [])}>${d.slice(0,3)}</button>`).join('');
     
     // Simulate click on today
-    showParentTimetableDay(tabs.querySelector('.active') || tabs.firstElementChild, JSON.stringify(ttData[today]||[]));
-  } catch (err) {
-    setEmptyState(content, 'clock', 'Not Available', 'Timetable for this class is not published yet.');
+    showParentTimetableDay(tabs.querySelector('.active') || tabs.firstElementChild, encodeURIComponent(JSON.stringify(ttData[today]||[])));
+  } catch (_) {
+    setEmptyState(content, 'clock', 'Not Available', 'Timetable for the selected child’s class and academic year is unavailable.');
   }
 }
 
@@ -263,7 +309,17 @@ window.showParentTimetableDay = function(btn, periodsJson) {
   document.querySelectorAll('#timetableDayTabs .tab-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   const content = document.getElementById('timetableContent');
-  const periods = JSON.parse(decodeURIComponent(periodsJson));
+  let periods;
+  try {
+    periods = JSON.parse(decodeURIComponent(periodsJson));
+  } catch (_) {
+    setEmptyState(content, 'clock', 'Not Available', 'The timetable response could not be displayed.');
+    return;
+  }
+  if (!Array.isArray(periods)) {
+    setEmptyState(content, 'clock', 'Not Available', 'The timetable response could not be displayed.');
+    return;
+  }
   
   if (!periods.length) {
     setEmptyState(content, 'coffee', 'No Classes', 'No periods scheduled.');
@@ -282,33 +338,109 @@ window.showParentTimetableDay = function(btn, periodsJson) {
 };
 
 /* ── Attendance ── */
+const PARENT_SCHOOL_TIME_ZONE = 'Asia/Kolkata';
+
+function parentSchoolDateParts(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(date.getTime())) return null;
+
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: PARENT_SCHOOL_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts
+    .filter(part => part.type === 'year' || part.type === 'month' || part.type === 'day')
+    .map(part => [part.type, Number(part.value)]));
+  if (!Number.isInteger(values.year) || !Number.isInteger(values.month) || !Number.isInteger(values.day)) return null;
+  return values;
+}
+
+function shiftParentAttendanceMonth(year, month, offset) {
+  if (!Number.isInteger(year) || year < 1 || year > 9999 || !Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(offset)) return null;
+  const absoluteMonth = year * 12 + month - 1 + offset;
+  const shiftedYear = Math.floor(absoluteMonth / 12);
+  if (shiftedYear < 1 || shiftedYear > 9999) return null;
+  return { year: shiftedYear, month: ((absoluteMonth % 12) + 12) % 12 + 1 };
+}
+
+function parentAttendanceMonthLabel(year, month) {
+  const date = new Date(0);
+  date.setUTCHours(12, 0, 0, 0);
+  date.setUTCFullYear(year, month - 1, 15);
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: PARENT_SCHOOL_TIME_ZONE,
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+}
+
+function parentAttendanceCalendarModel(year, month, records) {
+  if (!Number.isInteger(year) || year < 1 || year > 9999 || !Number.isInteger(month) || month < 1 || month > 12) return null;
+
+  const firstDay = new Date(0);
+  firstDay.setUTCHours(0, 0, 0, 0);
+  firstDay.setUTCFullYear(year, month - 1, 1);
+  const lastDay = new Date(0);
+  lastDay.setUTCHours(0, 0, 0, 0);
+  lastDay.setUTCFullYear(year, month, 0);
+
+  const dayMap = {};
+  for (const record of Array.isArray(records) ? records : []) {
+    const parts = parentSchoolDateParts(record?.date);
+    if (!parts || parts.year !== year || parts.month !== month) continue;
+    dayMap[parts.day] = String(record.status || '').toLowerCase();
+  }
+
+  return {
+    dayMap,
+    daysInMonth: lastDay.getUTCDate(),
+    leadingBlankDays: (firstDay.getUTCDay() + 6) % 7,
+  };
+}
+
 async function loadAttendance() {
   if (!_activeChildId) return;
   const sel = document.getElementById('attMonthSel');
   const statsEl = document.getElementById('attStats');
   const calEl = document.getElementById('attCalendar');
+  const schoolToday = parentSchoolDateParts(new Date());
+  if (!schoolToday) {
+    setEmptyState(calEl, 'calendar', 'No Data', 'The school date is unavailable.');
+    return;
+  }
+  const defaultMonth = `${schoolToday.year}-${String(schoolToday.month).padStart(2, '0')}`;
 
   if (sel && sel.options.length === 0) {
-    const now = new Date();
     for (let i = 0; i < 12; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-      sel.add(new Option(d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }), val));
+      const monthOption = shiftParentAttendanceMonth(schoolToday.year, schoolToday.month, -i);
+      if (!monthOption) continue;
+      const val = `${monthOption.year}-${String(monthOption.month).padStart(2, '0')}`;
+      sel.add(new Option(parentAttendanceMonthLabel(monthOption.year, monthOption.month), val));
     }
   }
 
-  const [year, month] = (sel.value || `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`).split('-');
+  const selectedMonth = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(sel?.value || defaultMonth);
+  if (!selectedMonth) {
+    setEmptyState(calEl, 'calendar', 'No Data', 'The selected attendance month is invalid.');
+    return;
+  }
+  const [, year, month] = selectedMonth;
   calEl.innerHTML = '<div class="spinner csp-style-c4b102f94c" ></div>';
 
   try {
     const data = await apiFetch(`/attendance/student/${_activeChildId}/monthly?year=${year}&month=${month}`);
-    const days = (data.data && (data.data.records || data.data.attendance)) || [];
+    if (!data || data.success !== true || !Array.isArray(data.data?.records)) {
+      throw new Error('Attendance response is unavailable.');
+    }
+    const days = data.data.records;
     
-    const present = days.filter(d => d.status === 'present').length;
-    const absent  = days.filter(d => d.status === 'absent').length;
-    const late    = days.filter(d => d.status === 'late').length;
-    const total   = days.length;
-    const pct     = total > 0 ? (present/total*100).toFixed(1) : '0.0';
+    const present = days.filter(d => d.status === 'Present').length;
+    const absent  = days.filter(d => d.status === 'Absent').length;
+    const late    = days.filter(d => d.status === 'Late').length;
+    const total   = days.filter(d => d.status !== 'Holiday').length;
+    const pct     = total > 0 ? ((present + late)/total*100).toFixed(1) : '0.0';
 
     statsEl.innerHTML = `
       <div class="stat-card success"><div class="stat-icon success"><i class="fas fa-check"></i></div><div class="stat-content"><div class="stat-value">${pct}%</div><div class="stat-label">Attendance</div></div></div>
@@ -323,17 +455,17 @@ async function loadAttendance() {
 }
 
 function renderParentAttCalendar(el, year, month, records) {
-  // Logic identical to student calendar
-  const dayMap = {}; records.forEach(r => dayMap[new Date(r.date).getDate()] = r.status);
-  const lastDay = new Date(year, month, 0).getDate();
-  let startWd = new Date(year, month - 1, 1).getDay();
-  if (startWd === 0) startWd = 7; startWd -= 1;
+  const calendar = parentAttendanceCalendarModel(year, month, records);
+  if (!calendar) {
+    setEmptyState(el, 'calendar', 'No Data', 'The selected attendance month is invalid.');
+    return;
+  }
 
   let html = `<div class="attendance-calendar">`;
   ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => html += `<div class="attendance-calendar-weekday">${d}</div>`);
-  for (let i=0; i<startWd; i++) html += `<div></div>`;
-  for (let d=1; d<=lastDay; d++) {
-    const st = dayMap[d];
+  for (let i=0; i<calendar.leadingBlankDays; i++) html += `<div></div>`;
+  for (let d=1; d<=calendar.daysInMonth; d++) {
+    const st = calendar.dayMap[d];
     html += `<div class="attendance-calendar-day attendance-calendar-day--${st || 'unmarked'}" title="${st||'—'}">${d}</div>`;
   }
   html += `</div>`;
@@ -382,26 +514,42 @@ window.filterHomework = function() {
 
 /* ── Exams ── */
 async function loadExams() {
-  if (!_activeChildData) return;
+  const upcomingEl = document.getElementById('upcomingExamsList');
+  const pastEl = document.getElementById('pastExamsList');
+  if (!_activeChildData || !upcomingEl || !pastEl) return;
+  upcomingEl.innerHTML = '<div class="spinner"></div>';
   try {
-    const data = await apiFetch(`/exams/upcoming?class=${_activeChildData.class}`);
-    const exams = data.data || data.exams || [];
-    const now = new Date();
-    
-    const upcoming = exams.filter(e => new Date(e.date) >= now);
-    const past = exams.filter(e => new Date(e.date) < now);
-    
-    renderExamsList('upcomingExamsList', upcoming);
-    renderExamsList('pastExamsList', past);
-  } catch (err) {}
+    const response = await apiFetch(`/exams/upcoming?class=${encodeURIComponent(_activeChildData.class || '')}`);
+    if (response?.success !== true || !Array.isArray(response.data)) throw new Error('Exam response was invalid.');
+    renderExamsList('upcomingExamsList', response.data);
+    setEmptyState(pastEl, 'file-alt', 'Past schedules unavailable', 'This endpoint returns upcoming exams only.');
+  } catch (err) {
+    setEmptyState(upcomingEl, 'file-alt', 'Could not load exams', escapeParentExamText(err.message || 'Exam schedules could not be loaded.'));
+  }
 }
 function renderExamsList(id, items) {
   const el = document.getElementById(id);
   if (!items.length) { setEmptyState(el, 'file-alt', 'No Exams', ''); return; }
-  el.innerHTML = items.map(ex => `<div class="card"><div class="card-body csp-style-08b2dfc6e6" >
-    <div class="csp-style-92de1f56ed"><div class="csp-style-a2dc103422">${new Date(ex.date).getDate()}</div><div class="csp-style-269e5f225a">${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date(ex.date).getMonth()]}</div></div>
-    <div><div class="csp-style-a1a0dcf46c">${ex.subject||ex.name}</div><div class="csp-style-3bdae21a61">${ex.examType||''}</div></div>
-  </div></div>`).join('');
+  el.innerHTML = items.map(ex => {
+    const now = new Date();
+    const dates = [ex.startDate, ...(Array.isArray(ex.subjects) ? ex.subjects.map(subject => subject?.date) : []), ex.endDate]
+      .map(value => value ? new Date(value) : null)
+      .filter(value => value && Number.isFinite(value.getTime()))
+      .sort((left, right) => left - right);
+    const date = dates.find(value => value >= now) || dates[0];
+    const subjects = [...new Set((Array.isArray(ex.subjects) ? ex.subjects : [])
+      .map(subject => typeof subject?.subject === 'string' ? subject.subject : subject?.subject?.name)
+      .filter(Boolean))];
+    return `<div class="card"><div class="card-body csp-style-08b2dfc6e6" >
+      <div class="csp-style-92de1f56ed"><div class="csp-style-a2dc103422">${date ? date.getDate() : '—'}</div><div class="csp-style-269e5f225a">${date ? escapeParentExamText(date.toLocaleString(undefined, { month: 'short' })) : 'Date unavailable'}</div></div>
+      <div><div class="csp-style-a1a0dcf46c">${escapeParentExamText(ex.name || 'Exam')}</div><div class="csp-style-3bdae21a61">${escapeParentExamText(ex.examType || 'Exam type unavailable')} · ${escapeParentExamText(ex.academicYear || 'Academic year unavailable')}</div>${subjects.length ? `<div>${escapeParentExamText(subjects.join(', '))}</div>` : ''}</div>
+    </div></div>`;
+  }).join('');
+}
+function escapeParentExamText(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]);
 }
 window.switchExamTab = function(tab, btn) {
   document.querySelectorAll('#panel-exams .tab-btn').forEach(b => b.classList.remove('active'));
@@ -432,14 +580,21 @@ async function loadFees() {
   if (!_activeChildId) return;
   try {
     const data = await apiFetch(`/fees/student/${_activeChildId}`);
-    const fee = data.data || {};
-    
-    document.getElementById('feeTotal').textContent = formatCurrency(fee.totalAmount || 0);
-    document.getElementById('feePaid').textContent = formatCurrency(fee.paidAmount || 0);
-    document.getElementById('feePending').textContent = formatCurrency(fee.pendingAmount || 0);
-    
     const tbody = document.getElementById('feeHistoryTable');
-    const payments = fee.payments || [];
+    const fee = data && data.success === true && data.data && !Array.isArray(data.data) ? data.data : null;
+    document.getElementById('feeTotal').textContent = displayParentAmount(fee?.totalAmount);
+    document.getElementById('feePaid').textContent = displayParentAmount(fee?.paidAmount);
+    document.getElementById('feePending').textContent = displayParentAmount(fee?.pendingAmount);
+    if (!fee) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="error-state">Fee summary is unavailable in this view.</div></td></tr>';
+      return;
+    }
+
+    if (!Array.isArray(fee.payments)) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="error-state">Payment history is unavailable.</div></td></tr>';
+      return;
+    }
+    const payments = fee.payments;
     if (!payments.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state csp-style-4b90810897" ><i class="fas fa-history"></i><p>No payment history.</p></div></td></tr>`; return; }
     
     tbody.innerHTML = payments.map(p => `<tr>
@@ -450,11 +605,17 @@ async function loadFees() {
       <td><span class="badge badge-success">Success</span></td>
       <td><button class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> Receipt</button></td>
     </tr>`).join('');
-  } catch(e) {}
+  } catch(e) {
+    ['feeTotal', 'feePaid', 'feePending'].forEach(id => {
+      document.getElementById(id).textContent = 'Unavailable';
+    });
+    const tbody = document.getElementById('feeHistoryTable');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="error-state">Fee data could not be loaded.</div></td></tr>';
+  }
 }
 
 window.initiatePayment = function() {
-  toast.info('Payment Gateway', 'Payment gateway integration ready.');
+  toast.warning('Online payment unavailable', 'No payment gateway is connected. Contact the school finance office.');
 };
 
 /* ── Library ── */

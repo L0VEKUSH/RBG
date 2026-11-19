@@ -12,7 +12,8 @@ const PRINCIPAL_NAV = [
   { label: 'Operations', items: [
     { icon: 'calendar-check', text: 'Attendance', panel: 'attendance' },
     { icon: 'book-open', text: 'Academics', panel: 'academics' },
-    { icon: 'file-alt', text: 'Exams', panel: 'exams' }
+    { icon: 'file-alt', text: 'Exams', panel: 'exams' },
+    { icon: 'calendar-alt', text: 'Timetable', panel: 'timetable' }
   ]},
   { label: 'Administration', items: [
     { icon: 'user-plus', text: 'Admissions', panel: 'admissions' },
@@ -46,79 +47,82 @@ window.onPanel_academics = loadAcademicsAnalytics;
 window.onPanel_exams = loadExamsPanel;
 window.onPanel_admissions = loadAdmissionsPanel;
 window.onPanel_approvals = loadApprovalsPanel;
-window.onPanel_notices = loadNoticesFull;
+window.onPanel_notices = loadPrincipalNotices;
+window.onPanel_reports = loadBasicReportsPanel;
 
 async function loadPrincipalDashboard() {
-  if (_dashData) {
-    renderDashboard(_dashData);
-    return;
-  }
   try {
-    const data = await apiFetch('/dashboard/principal');
-    _dashData = data.data || {};
+    const response = await apiFetch('/dashboard/principal');
+    _dashData = response.data || {};
     renderDashboard(_dashData);
-  } catch(e) {
-    console.error("Dashboard error:", e);
-    // Fallback Mock Data for demo if API fails
-    _dashData = {
-      totalStudents: 1250,
-      totalStaff: 85,
-      todayAttendancePct: 94.2,
-      pendingLeaves: 5,
-      pendingAdmissions: 12,
-      upcomingExamsCount: 3,
-      attendanceTrend: [
-        {date: new Date(Date.now() - 4*86400000).toISOString(), pct: 92},
-        {date: new Date(Date.now() - 3*86400000).toISOString(), pct: 95},
-        {date: new Date(Date.now() - 2*86400000).toISOString(), pct: 93},
-        {date: new Date(Date.now() - 1*86400000).toISOString(), pct: 94.5},
-        {date: new Date().toISOString(), pct: 94.2}
-      ],
-      recentExams: [
-        {name: 'Half Yearly', class: 'X', date: new Date(Date.now() + 5*86400000).toISOString()},
-        {name: 'Unit Test 2', class: 'XII', date: new Date(Date.now() + 8*86400000).toISOString()}
-      ]
-    };
-    renderDashboard(_dashData);
+    await loadAttendanceSummaryChart('dashAttChart');
+  } catch (error) {
+    const grid = document.getElementById('principalKpis');
+    grid.innerHTML = '<div class="error-state">Principal dashboard data is unavailable.</div>';
+    principalChartState('dashAttChart', 'Attendance summary is unavailable.');
+    principalChartState('dashApprovalsChart', 'Approval summary is unavailable.');
+    document.getElementById('dashExams').textContent = 'Upcoming exam details are unavailable.';
   }
 }
 
 function renderDashboard(d) {
-  // KPIs
   const grid = document.getElementById('principalKpis');
+  const metric = value => Number.isFinite(Number(value)) && value !== null && value !== undefined ? formatNumber(Number(value)) : 'Unavailable';
   grid.innerHTML = `
-    <div class="stat-card primary"><div class="stat-icon primary"><i class="fas fa-user-graduate"></i></div><div class="stat-content"><div class="stat-value">${formatNumber(d.totalStudents||0)}</div><div class="stat-label">Total Students</div></div></div>
-    <div class="stat-card teal"><div class="stat-icon teal"><i class="fas fa-chalkboard-teacher"></i></div><div class="stat-content"><div class="stat-value">${formatNumber(d.totalStaff||0)}</div><div class="stat-label">Total Teachers</div></div></div>
-    <div class="stat-card success"><div class="stat-icon success"><i class="fas fa-calendar-check"></i></div><div class="stat-content"><div class="stat-value">${(d.todayAttendancePct||0).toFixed(1)}%</div><div class="stat-label">Today's Attendance</div></div></div>
-    <div class="stat-card warning"><div class="stat-icon warning"><i class="fas fa-clock"></i></div><div class="stat-content"><div class="stat-value">${(d.pendingLeaves||0) + (d.pendingAdmissions||0)}</div><div class="stat-label">Pending Approvals</div></div></div>
-    <div class="stat-card danger"><div class="stat-icon danger"><i class="fas fa-file-alt"></i></div><div class="stat-content"><div class="stat-value">${d.upcomingExamsCount||0}</div><div class="stat-label">Upcoming Exams</div></div></div>
+    <div class="stat-card primary"><div class="stat-icon primary"><i class="fas fa-user-graduate"></i></div><div class="stat-content"><div class="stat-value">${metric(d.studentCount)}</div><div class="stat-label">Active Students</div></div></div>
+    <div class="stat-card teal"><div class="stat-icon teal"><i class="fas fa-chalkboard-teacher"></i></div><div class="stat-content"><div class="stat-value">${metric(d.facultyCount)}</div><div class="stat-label">Active Faculty</div></div></div>
+    <div class="stat-card info"><div class="stat-icon info"><i class="fas fa-calendar-check"></i></div><div class="stat-content"><div class="stat-value">${metric(d.presentStudents)}</div><div class="stat-label">Present Students Today</div></div></div>
+    <div class="stat-card warning"><div class="stat-icon warning"><i class="fas fa-clock"></i></div><div class="stat-content"><div class="stat-value">${metric(d.pendingAdmissions)}</div><div class="stat-label">Pending Admissions</div></div></div>
+    <div class="stat-card danger"><div class="stat-icon danger"><i class="fas fa-file-alt"></i></div><div class="stat-content"><div class="stat-value">${metric(d.upcomingExams)}</div><div class="stat-label">Upcoming Exams</div></div></div>
   `;
-
-  // Charts
-  const attLabels = (d.attendanceTrend||[]).map(x => formatDate(x.date, 'MMM DD'));
-  const attData = (d.attendanceTrend||[]).map(x => x.pct);
-  createLineChart('dashAttChart', attLabels.length?attLabels:['M','T','W','T','F'], [{
-    label:'Attendance %', data:attData.length?attData:[90,92,88,95,91], borderColor:'#4f46e5', backgroundColor:'rgba(79,70,229,0.1)', fill:true
-  }], { y: { min:50, max:100 } });
-  
-  createDoughnutChart('dashApprovalsChart', ['Leaves', 'Admissions'], [{
-      data: [d.pendingLeaves||5, d.pendingAdmissions||12],
-      backgroundColor: ['#f59e0b', '#3b82f6']
-  }]);
-
-  // Exams Widget
+  principalChartState('dashApprovalsChart', 'The dashboard currently reports pending admissions; pending leave totals are not included.');
   const examsEl = document.getElementById('dashExams');
-  if(!(d.recentExams||[]).length) setEmptyState(examsEl, 'check-circle', 'No Upcoming Exams', '');
-  else examsEl.innerHTML = (d.recentExams).slice(0,3).map(e => `<div class="csp-style-3dc6424224">
-    <div><div class="csp-style-7829f0a10f">${e.name}</div><div class="csp-style-3bdae21a61">Class ${e.class||'All'}</div></div>
-    <div class="csp-style-a38b6cd4c1">${formatDate(e.date)}</div>
-  </div>`).join('');
-  
-  // Notices
-  loadRecentNotices('dashNotices', 3);
+  if (!Array.isArray(d.recentExams)) examsEl.textContent = Number.isFinite(Number(d.upcomingExams))
+    ? `${Number(d.upcomingExams)} upcoming exam(s); the dashboard API does not include exam details.`
+    : 'Upcoming exam details are unavailable.';
+  else if (!d.recentExams.length) setEmptyState(examsEl, 'check-circle', 'No Upcoming Exams', '');
+  else examsEl.innerHTML = d.recentExams.slice(0, 3).map(exam => `<div class="csp-style-3dc6424224"><div><div class="csp-style-7829f0a10f">${exam.name || 'Unavailable'}</div><div class="csp-style-3bdae21a61">Class ${exam.class || 'Unavailable'}</div></div><div class="csp-style-a38b6cd4c1">${exam.date ? formatDate(exam.date) : 'Unavailable'}</div></div>`).join('');
+  loadVisiblePrincipalNotices('dashNotices', 3);
 }
 
-/* ── Students Search ── */
+function principalChartState(canvasId, message) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas?.parentElement) return;
+  canvas.hidden = true;
+  let status = document.getElementById(`${canvasId}Status`);
+  if (!status) {
+    status = document.createElement('div');
+    status.id = `${canvasId}Status`;
+    status.className = 'empty-state';
+    canvas.parentElement.appendChild(status);
+  }
+  status.textContent = message;
+  status.hidden = false;
+}
+
+function showPrincipalChart(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (canvas) canvas.hidden = false;
+  const status = document.getElementById(`${canvasId}Status`);
+  if (status) status.hidden = true;
+}
+
+async function loadAttendanceSummaryChart(canvasId) {
+  try {
+    const response = await apiFetch('/reports/attendance');
+    const rows = Array.isArray(response?.data) ? response.data : [];
+    if (response?.success !== true || !rows.length) {
+      principalChartState(canvasId, rows.length ? 'Attendance summary is unavailable.' : 'No attendance records are available.');
+      return;
+    }
+    showPrincipalChart(canvasId);
+    createBarChart(canvasId, rows.map(row => String(row._id || 'Unknown')),
+      [{ label: 'Attendance records', data: rows.map(row => Number(row.count) || 0), backgroundColor: '#4f46e5' }]);
+  } catch (error) {
+    principalChartState(canvasId, 'Attendance summary is unavailable.');
+  }
+}
+
 async function loadStudentsPanel() {
     const sel = document.getElementById('studentSearchClass');
     if(sel.options.length <= 1) {
@@ -126,6 +130,12 @@ async function loadStudentsPanel() {
     }
     // Fetch all students if not already fetched for client-side search, or let search endpoint handle it.
     // For large schools, search should ideally hit API. Here we will use API.
+}
+
+function escapePrincipalStudentText(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]);
 }
 
 window.searchStudents = async function() {
@@ -138,34 +148,36 @@ window.searchStudents = async function() {
         return;
     }
 
-    tbody.innerHTML = '<tr><td colspan="5"><div class="spinner"></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4"><div class="spinner"></div></td></tr>';
     try {
-        let endpoint = `/students`;
-        if (cls) endpoint = `/students/class/${cls}`;
+        let endpoint = `/students?limit=1000`;
+        if (cls) endpoint = `/students/class/${encodeURIComponent(cls)}`;
         
-        const data = await apiFetch(endpoint);
-        let std = data.data || [];
+        const response = await apiFetch(endpoint);
+        let std = cls ? response?.data?.students : response?.students;
+        if (response?.success !== true || !Array.isArray(std)) {
+            throw new Error('Student list response was invalid.');
+        }
         
         if (q) {
             const lq = q.toLowerCase();
             std = std.filter(s => 
-                (s.name && s.name.toLowerCase().includes(lq)) || 
+                ((s.user?.name || s.name || '').toLowerCase().includes(lq)) ||
                 (s.admissionNumber && s.admissionNumber.toLowerCase().includes(lq)) ||
                 (s.rollNumber && s.rollNumber.toLowerCase().includes(lq))
             );
         }
 
-        if(!std.length) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">No students found matching your criteria.</div></td></tr>`; return; }
+        if(!std.length) { tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">No students found matching your criteria.</div></td></tr>`; return; }
         
         tbody.innerHTML = std.map(s => `<tr>
-          <td>${s.admissionNumber||'—'}</td>
-          <td class="csp-style-6e8bcfac8d">${s.name}</td>
-          <td>${s.class}</td>
-          <td>${s.rollNumber||'—'}</td>
-          <td>${s.parentPhone||'—'}</td>
+          <td>${escapePrincipalStudentText(s.admissionNumber || '—')}</td>
+          <td class="csp-style-6e8bcfac8d">${escapePrincipalStudentText(s.user?.name || s.name || 'Unavailable')}</td>
+          <td>${escapePrincipalStudentText(s.class || '—')}</td>
+          <td>${escapePrincipalStudentText(s.rollNumber || '—')}</td>
         </tr>`).join('');
     } catch(e) {
-        tbody.innerHTML = `<tr><td colspan="5"><div class="error-state">${e.message}</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4"><div class="error-state">${escapePrincipalStudentText(e.message || 'Student search failed.')}</div></td></tr>`;
     }
 }
 
@@ -177,18 +189,26 @@ async function loadTeachersPanel() {
   if(!_staffAll.length) {
       tbody.innerHTML = '<tr><td colspan="4"><div class="spinner"></div></td></tr>';
       try {
-        const data = await apiFetch('/faculty');
-        _staffAll = data.data || data.faculty || [];
+        const data = await apiFetch('/faculty?limit=1000');
+        _staffAll = data?.data?.faculty;
+        if (data?.success !== true || !Array.isArray(_staffAll)) throw new Error('Teacher list response was invalid.');
+        const departmentSelect = document.getElementById('staffDeptFilter');
+        if (departmentSelect) {
+          const departments = [...new Set(_staffAll.map(item => item.department).filter(Boolean))].sort();
+          departmentSelect.replaceChildren(new Option('All Departments', ''));
+          departments.forEach(department => departmentSelect.add(new Option(department, department)));
+        }
       } catch(e) { 
-        tbody.innerHTML = `<tr><td colspan="4" class="error-state">${e.message}</td></tr>`; 
+        tbody.innerHTML = `<tr><td colspan="4" class="error-state">${escapePrincipalStudentText(e.message || 'Teacher list is unavailable.')}</td></tr>`;
         return;
       }
   }
   
   // Update KPIs
   const total = _staffAll.length;
-  const teaching = _staffAll.filter(s => s.department === 'Teaching' || s.role === 'teacher').length;
-  const onLeave = 3; // Mocked leave status for demo
+  const teachingRoles = new Set(['HOD', 'Senior Teacher', 'Teacher', 'PRT', 'TGT', 'PGT']);
+  const teaching = _staffAll.filter(s => teachingRoles.has(s.designation)).length;
+  const onLeave = 'Unavailable';
   
   kpiGrid.innerHTML = `
     <div class="stat-card teal"><div class="stat-content"><div class="stat-value">${total}</div><div class="stat-label">Total Staff</div></div></div>
@@ -204,92 +224,129 @@ window.filterStaff = function() {
   const dept = document.getElementById('staffDeptFilter')?.value || '';
   let f = _staffAll;
   
-  if(q) f = f.filter(s => s.name?.toLowerCase().includes(q) || s.department?.toLowerCase().includes(q));
-  if(dept) f = f.filter(s => s.department === dept || (dept === 'Teaching' && s.role === 'teacher'));
+  if(q) f = f.filter(s => (s.user?.name || '').toLowerCase().includes(q) || (s.user?.email || '').toLowerCase().includes(q) || s.department?.toLowerCase().includes(q) || s.designation?.toLowerCase().includes(q));
+  if(dept) f = f.filter(s => s.department === dept);
   
   const tbody = document.getElementById('staffTableBody');
   if(!f.length) { tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">No staff found</div></td></tr>`; return; }
   tbody.innerHTML = f.map(s => `<tr>
-    <td class="csp-style-6e8bcfac8d"><div class="csp-style-dbcceb15c7"><div class="sidebar-avatar csp-style-3ab6dbbe06" >${getInitials(s.name)}</div>${s.name}</div></td>
-    <td><span class="badge badge-info">${s.role?s.role.replace('_',' '):'Staff'}</span></td>
-    <td>${s.department||'Teaching'}</td>
-    <td><span class="badge badge-success">Present</span></td>
+    <td class="csp-style-6e8bcfac8d"><div class="csp-style-dbcceb15c7"><div class="sidebar-avatar csp-style-3ab6dbbe06" >${escapePrincipalStudentText(getInitials(s.user?.name || ''))}</div>${escapePrincipalStudentText(s.user?.name || 'Unavailable')}</div></td>
+    <td><span class="badge badge-info">${escapePrincipalStudentText(s.designation || 'Faculty')}</span></td>
+    <td>${escapePrincipalStudentText(s.department || 'Unavailable')}</td>
+    <td><span class="badge badge-secondary">${s.isActive === true ? 'Active' : s.isActive === false ? 'Inactive' : 'Unavailable'}</span></td>
   </tr>`).join('');
 };
 
 /* ── Attendance Analytics ── */
-let attChartsRendered = false;
-function loadAttendanceAnalytics() {
-    if(attChartsRendered) return;
-    
-    // Mock Data for Attendance Trends
-    createBarChart('attendanceTrendChart', ['Jan','Feb','Mar','Apr','May','Jun'], [{
-        label: 'Overall Attendance %',
-        data: [91, 93, 95, 92, 88, 94],
-        backgroundColor: '#4f46e5'
-    }]);
-
-    createBarChart('lowAttendanceChart', ['Class IX', 'Class XI', 'Class VIII', 'Class X'], [{
-        label: 'Attendance %',
-        data: [82, 85, 87, 89],
-        backgroundColor: '#ef4444'
-    }], { indexAxis: 'y' });
-
-    attChartsRendered = true;
+async function loadAttendanceAnalytics() {
+  await loadAttendanceSummaryChart('attendanceTrendChart');
 }
 
-/* ── Academics Analytics ── */
-let acadChartsRendered = false;
-function loadAcademicsAnalytics() {
-    if(acadChartsRendered) return;
-
-    createBarChart('classPerformanceChart', ['VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'], [{
-        label: 'Average Score (%)',
-        data: [78, 82, 80, 75, 88, 72, 85],
-        backgroundColor: '#10b981'
-    }]);
-
-    createDoughnutChart('subjectPassChart', ['Mathematics', 'Science', 'English', 'Social Studies'], [{
-        data: [75, 82, 95, 88],
-        backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6']
-    }]);
-
-    acadChartsRendered = true;
-}
-
-/* ── Exams ── */
-async function loadExamsPanel() {
-    const tbody = document.getElementById('examsTableBody');
-    tbody.innerHTML = '<tr><td colspan="5"><div class="spinner"></div></td></tr>';
-    try {
-        const data = await apiFetch('/exams/upcoming');
-        const exams = data.data || [];
-        if(!exams.length) {
-            // Mock fallback
-            const m = [{name:'Half Yearly Examination', class:'X, XII', startDate: '2026-10-10', endDate: '2026-10-25', status:'Scheduled'}];
-            tbody.innerHTML = m.map(e => `<tr><td><strong>${e.name}</strong></td><td>${e.class}</td><td>${formatDate(e.startDate)}</td><td>${formatDate(e.endDate)}</td><td><span class="badge badge-info">${e.status}</span></td></tr>`).join('');
-            return;
-        }
-        tbody.innerHTML = exams.map(e => `<tr><td><strong>${e.title||e.name}</strong></td><td>${e.class}</td><td>${formatDate(e.startDate||e.date)}</td><td>${formatDate(e.endDate||e.date)}</td><td><span class="badge badge-info">Scheduled</span></td></tr>`).join('');
-    } catch(e) {
-        tbody.innerHTML = `<tr><td colspan="5" class="error-state">${e.message}</td></tr>`;
+async function loadAcademicsAnalytics() {
+  try {
+    const response = await apiFetch('/reports/marks');
+    const rows = Array.isArray(response?.data) ? response.data : [];
+    if (response?.success !== true || !rows.length) {
+      principalChartState('classPerformanceChart', 'No marks summaries are available.');
+      principalChartState('subjectPassChart', 'No marks summaries are available.');
+      return;
     }
+    const labels = rows.map(row => String(row._id || 'Unknown exam type'));
+    showPrincipalChart('classPerformanceChart');
+    showPrincipalChart('subjectPassChart');
+    createBarChart('classPerformanceChart', labels, [{
+      label: 'Average marks (%)', data: rows.map(row => Number(row.avgPercentage) || 0), backgroundColor: '#10b981',
+    }], { yScale: { min: 0, max: 100 } });
+    createBarChart('subjectPassChart', labels, [
+      { label: 'Pass count', data: rows.map(row => Number(row.passCount) || 0), backgroundColor: '#10b981' },
+      { label: 'Fail count', data: rows.map(row => Number(row.failCount) || 0), backgroundColor: '#ef4444' },
+    ]);
+  } catch (error) {
+    principalChartState('classPerformanceChart', 'Marks summaries are unavailable.');
+    principalChartState('subjectPassChart', 'Marks summaries are unavailable.');
+  }
+}
+
+async function loadBasicReportsPanel() {
+  const attendanceBody = document.getElementById('principalReportAttendance');
+  const marksBody = document.getElementById('principalReportMarks');
+  if (!attendanceBody || !marksBody) return;
+  attendanceBody.innerHTML = '<tr><td colspan="2">Loading…</td></tr>';
+  marksBody.innerHTML = '<tr><td colspan="4">Loading…</td></tr>';
+  const [attendanceResult, marksResult] = await Promise.allSettled([
+    apiFetch('/reports/attendance'),
+    apiFetch('/reports/marks'),
+  ]);
+  if (attendanceResult.status === 'fulfilled' && attendanceResult.value?.success === true && Array.isArray(attendanceResult.value.data)) {
+    const rows = attendanceResult.value.data;
+    attendanceBody.innerHTML = rows.length
+      ? rows.map(row => `<tr><td>${escapePrincipalStudentText(row._id || 'Unknown')}</td><td>${Number(row.count) || 0}</td></tr>`).join('')
+      : '<tr><td colspan="2">No attendance records are available.</td></tr>';
+  } else attendanceBody.innerHTML = '<tr><td colspan="2" class="error-state">Attendance report is unavailable.</td></tr>';
+
+  if (marksResult.status === 'fulfilled' && marksResult.value?.success === true && Array.isArray(marksResult.value.data)) {
+    const rows = marksResult.value.data;
+    marksBody.innerHTML = rows.length
+      ? rows.map(row => `<tr><td>${escapePrincipalStudentText(row._id || 'Unknown exam type')}</td><td>${Number.isFinite(Number(row.avgPercentage)) ? `${Number(row.avgPercentage).toFixed(1)}%` : 'Unavailable'}</td><td>${Number(row.passCount) || 0}</td><td>${Number(row.failCount) || 0}</td></tr>`).join('')
+      : '<tr><td colspan="4">No marks summaries are available.</td></tr>';
+  } else marksBody.innerHTML = '<tr><td colspan="4" class="error-state">Marks report is unavailable.</td></tr>';
+}
+
+async function loadVisiblePrincipalNotices(containerId, limit = 100) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.textContent = 'Loading notices…';
+  try {
+    const response = await apiFetch(`/notices?limit=${encodeURIComponent(limit)}`);
+    const notices = response?.data?.notices;
+    if (response?.success !== true || !Array.isArray(notices)) throw new Error('Notice list response was invalid.');
+    container.replaceChildren();
+    if (!notices.length) {
+      container.textContent = 'No notices visible to this account.';
+      return;
+    }
+    notices.forEach(notice => {
+      const card = document.createElement('div');
+      card.className = 'csp-style-89405a374f';
+      const heading = document.createElement('strong');
+      heading.textContent = notice.title || 'Untitled notice';
+      const metadata = document.createElement('span');
+      metadata.className = 'text-muted';
+      metadata.textContent = [notice.type || 'General', notice.publishDate ? formatDate(notice.publishDate) : 'Available now'].join(' · ');
+      card.append(heading, document.createTextNode(' '), metadata);
+      if (containerId === 'noticesList') {
+        const content = document.createElement('p');
+        content.textContent = notice.content || '';
+        card.appendChild(content);
+      }
+      container.appendChild(card);
+    });
+  } catch (error) {
+    container.textContent = error.message || 'Notices could not be loaded.';
+  }
+}
+
+async function loadPrincipalNotices() {
+  await loadVisiblePrincipalNotices('noticesList', 100);
+}
+
+async function loadExamsPanel() {
+  const tbody = document.getElementById('examsTableBody');
+  tbody.innerHTML = '<tr><td colspan="5"><div class="spinner"></div></td></tr>';
+  try {
+    const response = await apiFetch('/exams/upcoming');
+    const exams = Array.isArray(response.data) ? response.data : [];
+    if (!exams.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No upcoming exams.</div></td></tr>'; return; }
+    tbody.innerHTML = exams.map(exam => `<tr><td><strong>${exam.title || exam.name || 'Unavailable'}</strong></td><td>${exam.class || 'Unavailable'}</td><td>${formatDate(exam.startDate || exam.date)}</td><td>${formatDate(exam.endDate || exam.date)}</td><td><span class="badge badge-info">Scheduled</span></td></tr>`).join('');
+  } catch (error) {
+    tbody.innerHTML = '<tr><td colspan="5" class="error-state">Upcoming exams could not be loaded.</td></tr>';
+  }
 }
 
 /* ── Admissions ── */
 async function loadAdmissionsPanel() {
-    const tbody = document.getElementById('admissionsTableBody');
-    // Mock Admissions data
-    const m = [
-        {name: 'Rahul Sharma', class: 'VI', date: new Date().toISOString(), status: 'Pending'},
-        {name: 'Priya Patel', class: 'IX', date: new Date(Date.now()-86400000).toISOString(), status: 'Pending'}
-    ];
-    tbody.innerHTML = m.map(a => `<tr>
-        <td><strong>${a.name}</strong></td>
-        <td>${a.class}</td>
-        <td>${formatDate(a.date)}</td>
-        <td><span class="badge badge-warning">${a.status}</span></td>
-    </tr>`).join('');
+  const tbody = document.getElementById('admissionsTableBody');
+  tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">Admission records are unavailable in this view.</div></td></tr>';
 }
 
 /* ── Approvals (Leaves & Admissions) ── */
@@ -311,64 +368,47 @@ async function loadPendingLeaves() {
   const tbody = document.getElementById('leaveApproveBody');
   tbody.innerHTML = '<tr><td colspan="5"><div class="spinner"></div></td></tr>';
   try {
-    const data = await apiFetch('/leaves/pending');
-    const leaves = data.data || data.leaves || [];
-    if(!leaves.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No pending leave requests.</div></td></tr>'; return; }
-    
-    tbody.innerHTML = leaves.map(l => `<tr>
-      <td class="csp-style-6e8bcfac8d">${l.applicant?.name || 'Unknown'} <div class="csp-style-550aa9233d">${l.applicant?.role || ''}</div></td>
-      <td>${formatDate(l.fromDate)} <i class="fas fa-arrow-right csp-style-de615098fd" ></i> ${formatDate(l.toDate)}</td>
-      <td><span class="badge badge-secondary">${l.leaveType||'Leave'}</span></td>
-      <td class="csp-style-749cb1d3cf" title="${l.reason||''}">${l.reason||'—'}</td>
-      <td>
-        <button class="btn btn-success btn-sm" aria-label="Approve leave request" ${cspActionAttrs("approveLeave", ['${l._id}'], "click", [], [])}><i class="fas fa-check"></i></button>
-        <button class="btn btn-danger btn-sm" aria-label="Reject leave request" ${cspActionAttrs("rejectLeave", ['${l._id}'], "click", [], [])}><i class="fas fa-times"></i></button>
-      </td>
-    </tr>`).join('');
-  } catch(e) { 
-      // Mock Fallback
-      tbody.innerHTML = `<tr>
-        <td class="csp-style-6e8bcfac8d">Amit Teacher <div class="csp-style-550aa9233d">Teacher</div></td>
-        <td>${formatDate(new Date())} <i class="fas fa-arrow-right csp-style-de615098fd" ></i> ${formatDate(new Date())}</td>
-        <td><span class="badge badge-secondary">Sick Leave</span></td>
-        <td>Fever</td>
-        <td>
-          <button class="btn btn-success btn-sm" aria-label="Approve leave request" ${cspActionAttrs("toastSuccess", ['Approved', ''], "click", [], [])}><i class="fas fa-check"></i></button>
-          <button class="btn btn-danger btn-sm" aria-label="Reject leave request" ${cspActionAttrs("toastSuccess", ['Rejected', ''], "click", [], [])}><i class="fas fa-times"></i></button>
-        </td>
-      </tr>`;
+    const response = await apiFetch('/leaves/pending');
+    const leaves = response.data || response.leaves || [];
+    if (!leaves.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No pending leave requests.</div></td></tr>'; return; }
+    const isPrincipal = String(getUser()?.role || '').toLowerCase() === 'principal';
+    tbody.innerHTML = leaves.map(leave => {
+      const rejectButton = isPrincipal ? '' : `<button class="btn btn-danger btn-sm" aria-label="Reject leave request" ${cspActionAttrs("rejectLeave", ['${leave._id}'], "click", [], [])}><i class="fas fa-times"></i></button>`;
+      return `<tr><td>${leave.user?.name || 'Unknown'} <div class="csp-style-550aa9233d">${leave.user?.role || ''}</div></td><td>${formatDate(leave.startDate)} to ${formatDate(leave.endDate)}</td><td><span class="badge badge-secondary">${leave.leaveType || 'Leave'}</span></td><td title="${leave.reason || ''}">${leave.reason || 'Unavailable'}</td><td><button class="btn btn-success btn-sm" aria-label="Approve leave request" ${cspActionAttrs("approveLeave", ['${leave._id}'], "click", [], [])}><i class="fas fa-check"></i></button>${rejectButton}</td></tr>`;
+    }).join('');
+  } catch (error) {
+    tbody.innerHTML = '<tr><td colspan="5" class="error-state">Leave requests are unavailable.</td></tr>';
   }
 }
 
 async function loadPendingAdmissions() {
-    const tbody = document.getElementById('admissionApproveBody');
-    // Mock Admissions approval data
-    const m = [
-        {id:'1', name: 'Rahul Sharma', class: 'VI', prevSchool: 'Delhi Public School'},
-        {id:'2', name: 'Priya Patel', class: 'IX', prevSchool: 'St. Marys'}
-    ];
-    tbody.innerHTML = m.map(a => `<tr>
-        <td><strong>${a.name}</strong></td>
-        <td>${a.class}</td>
-        <td>${a.prevSchool}</td>
-        <td>
-          <button class="btn btn-success btn-sm" ${cspActionAttrs("toastSuccess", ['Admitted', ''], "click", [], [])}><i class="fas fa-check"></i> Admit</button>
-          <button class="btn btn-danger btn-sm" aria-label="Reject admission for ${a.name}" ${cspActionAttrs("toastSuccess", ['Rejected', ''], "click", [], [])}><i class="fas fa-times"></i></button>
-        </td>
-    </tr>`).join('');
+  const tbody = document.getElementById('admissionApproveBody');
+  tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">Admission review actions are unavailable in this view.</div></td></tr>';
+}
+
+async function submitLeaveDecision(id, status) {
+  const label = status === 'Approved' ? 'Approved' : 'Rejected';
+  try {
+    await apiFetch(`/leaves/${encodeURIComponent(id)}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+    toast.success(label, `Leave request ${status.toLowerCase()}.`);
+    await loadPendingLeaves();
+  } catch (error) {
+    toast.error('Error', error.message || `Leave request could not be ${status.toLowerCase()}.`);
+  }
 }
 
 window.approveLeave = async function(id) {
-  confirmAction('Approve this leave request?', async () => {
-    try { await apiFetch(`/leaves/${id}/approve`, {method:'PATCH'}); toast.success('Approved',''); loadPendingLeaves(); }
-    catch(e){ toast.error('Error',e.message); }
-  });
+  confirmAction('Approve this leave request?', () => submitLeaveDecision(id, 'Approved'));
 };
 window.rejectLeave = async function(id) {
-  confirmAction('Reject this leave request?', async () => {
-    try { await apiFetch(`/leaves/${id}/reject`, {method:'PATCH'}); toast.success('Rejected',''); loadPendingLeaves(); }
-    catch(e){ toast.error('Error',e.message); }
-  }, 'Reject', true);
+  if (String(getUser()?.role || '').toLowerCase() === 'principal') {
+    toast.error('Not authorized', 'Your role cannot reject leave requests.');
+    return;
+  }
+  confirmAction('Reject this leave request?', () => submitLeaveDecision(id, 'Rejected'), 'Reject', true);
 };
 
 /* ── Notices ── */
@@ -376,12 +416,15 @@ window.submitNotice = async function() {
   const title = document.getElementById('noticeTitle').value;
   const type = document.getElementById('noticeType').value;
   const pri = document.getElementById('noticePri').value;
+  const audience = document.getElementById('noticeAudience').value;
   const content = document.getElementById('noticeContent').value;
   if(!title) return toast.warning('Missing', 'Title is required');
+  if(!audience) return toast.warning('Missing', 'Choose who should receive this notice');
   try {
-    await apiFetch('/notices', { method: 'POST', body: JSON.stringify({title, type, priority:pri, content}) });
-    toast.success('Published', 'Notice published successfully.');
+    const response = await apiFetch('/notices', { method: 'POST', body: JSON.stringify({title, type, priority:pri, content, targetAudience:[audience]}) });
+    if (response?.success !== true || !response.data?.notice) throw new Error('Notice creation was not confirmed by the server.');
+    toast.success('Notice created', 'The notice was accepted by the server.');
     closeModal('addNoticeModal');
-    loadNoticesFull();
-  } catch(e){ toast.error('Error', e.message); }
+    await loadPrincipalNotices();
+  } catch(e){ toast.error('Notice not created', e.message || 'The notice could not be created.'); }
 };

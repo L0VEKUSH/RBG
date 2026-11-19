@@ -76,14 +76,14 @@
         <div class="charts-row">
           <div class="card csp-style-f4d2e5376a" >
             <div class="card-header">
-              <h3><i class="fas fa-chart-line"></i> School Attendance Trend</h3>
+              <h3><i class="fas fa-chart-line"></i> Attendance Summary (all recorded years)</h3>
             </div>
             <div class="card-body csp-style-7191acabd1" ><canvas id="dashAttChart"></canvas></div>
           </div>
           
           <div class="card csp-style-98545d1c16" >
             <div class="card-header">
-              <h3><i class="fas fa-clock"></i> Pending Approvals Summary</h3>
+              <h3><i class="fas fa-clock"></i> Pending Admissions</h3>
             </div>
             <div class="card-body csp-style-df0b9c1e6a" >
                 <canvas id="dashApprovalsChart"></canvas>
@@ -125,8 +125,8 @@
         <div class="card">
           <div class="table-wrapper">
             <table class="data-table">
-              <thead><tr><th>Adm. No</th><th>Name</th><th>Class</th><th>Roll No</th><th>Contact</th></tr></thead>
-              <tbody id="studentTableBody"><tr><td colspan="5"><div class="empty-state">Use the search bar to find students</div></td></tr></tbody>
+              <thead><tr><th>Adm. No</th><th>Name</th><th>Class</th><th>Roll No</th></tr></thead>
+              <tbody id="studentTableBody"><tr><td colspan="4"><div class="empty-state">Use the search bar to find students</div></td></tr></tbody>
             </table>
           </div>
         </div>
@@ -163,12 +163,12 @@
         </div>
         <div class="charts-row">
             <div class="card">
-                <div class="card-header"><h3>School Attendance Trend (Monthly)</h3></div>
+                <div class="card-header"><h3>Attendance records by status</h3></div>
                 <div class="card-body csp-style-7191acabd1" ><canvas id="attendanceTrendChart"></canvas></div>
             </div>
             <div class="card">
-                <div class="card-header"><h3>Low Attendance Classes</h3></div>
-                <div class="card-body csp-style-7191acabd1" ><canvas id="lowAttendanceChart"></canvas></div>
+                <div class="card-header"><h3>Class-level low-attendance detail</h3></div>
+                <div class="card-body csp-style-7191acabd1" id="lowAttendanceChart">The available report API does not provide class-level low-attendance details.</div>
             </div>
         </div>
       </div>
@@ -180,30 +180,19 @@
         </div>
         <div class="charts-row">
             <div class="card">
-                <div class="card-header"><h3>Class Performance (Average Marks)</h3></div>
+                <div class="card-header"><h3>Average marks by exam type</h3></div>
                 <div class="card-body csp-style-7191acabd1" ><canvas id="classPerformanceChart"></canvas></div>
             </div>
             <div class="card">
-                <div class="card-header"><h3>Pass Percentage by Subject</h3></div>
+                <div class="card-header"><h3>Pass and fail counts by exam type</h3></div>
                 <div class="card-body csp-style-7191acabd1" ><canvas id="subjectPassChart"></canvas></div>
             </div>
         </div>
       </div>
 
       <!-- ── EXAMS ── -->
-      <div class="page-section" id="panel-exams">
-        <div class="section-header">
-          <h2><i class="fas fa-file-alt csp-style-3930c36a16" ></i> Upcoming Exams</h2>
-        </div>
-        <div class="card">
-            <div class="table-wrapper">
-                <table class="data-table">
-                    <thead><tr><th>Exam Name</th><th>Class</th><th>Start Date</th><th>End Date</th><th>Status</th></tr></thead>
-                    <tbody id="examsTableBody"><tr><td colspan="5"><div class="spinner"></div></td></tr></tbody>
-                </table>
-            </div>
-        </div>
-      </div>
+      <div class="page-section" id="panel-exams"><div id="examScheduleManager"></div></div>
+      <div class="page-section" id="panel-timetable"><div id="timetableScheduleManager"></div></div>
 
       <!-- ── ADMISSIONS ── -->
       <div class="page-section" id="panel-admissions">
@@ -258,11 +247,14 @@
         <div class="section-header">
           <h2><i class="fas fa-chart-pie csp-style-3930c36a16" ></i> Reports</h2>
         </div>
-        <div class="card"><div class="card-body"><div class="empty-state"><i class="fas fa-cogs csp-style-f59a05163f" ></i> Custom reporting module coming soon.</div></div></div>
+        <div class="widgets-row">
+          <div class="card"><div class="card-header"><h3>Attendance records by status (all recorded years)</h3></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>Status</th><th>Records</th></tr></thead><tbody id="principalReportAttendance"><tr><td colspan="2">Loading…</td></tr></tbody></table></div></div>
+          <div class="card"><div class="card-header"><h3>Marks summary by exam type (all recorded years)</h3></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>Exam type</th><th>Average</th><th>Pass</th><th>Fail</th></tr></thead><tbody id="principalReportMarks"><tr><td colspan="4">Loading…</td></tr></tbody></table></div></div>
+        </div>
       </div>
       
       <!-- Stubs for generic panels -->
-      <div class="page-section" id="panel-notices"><div class="section-header"><h2>Notices</h2><button class="btn btn-primary" data-csp-action-click="openModal" data-csp-args-click="%5B%22addNoticeModal%22%5D"><i class="fas fa-plus"></i> New Notice</button></div><div id="noticesList"></div></div>
+      <div class="page-section" id="panel-notices"><div class="section-header"><div><h2>Notices</h2><p class="text-muted">Only notices visible to your account are listed. Notice creation follows your existing permission.</p></div><button class="btn btn-primary" data-csp-action-click="openModal" data-csp-args-click="%5B%22addNoticeModal%22%5D"><i class="fas fa-plus"></i> New Notice</button></div><div id="noticesList"></div></div>
       <div class="page-section" id="panel-profile"><div class="section-header"><h2>My Profile</h2></div><div class="card" id="profileCard"></div></div>
     </div>
   </main>
@@ -277,6 +269,7 @@
           <div class="form-group"><label for="noticeType">Type</label><select class="form-control" id="noticeType"><option>General</option><option>Academic</option><option>Holiday</option></select></div>
           <div class="form-group"><label for="noticePri">Priority</label><select class="form-control" id="noticePri"><option>Medium</option><option>High</option><option>Urgent</option></select></div>
         </div>
+        <div class="form-group"><label for="noticeAudience">Audience <span class="required">*</span></label><select class="form-control" id="noticeAudience" required><option value="">Choose an audience</option><option value="All">All audiences (public)</option><option value="Students">Students</option><option value="Faculty">Faculty</option><option value="Parents">Parents</option><option value="Admin">Administrators</option></select></div>
         <div class="form-group"><label for="noticeContent">Content</label><textarea class="form-control" id="noticeContent" rows="4"></textarea></div>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-csp-action-click="closeModal" data-csp-args-click="%5B%22addNoticeModal%22%5D">Cancel</button><button class="btn btn-primary" data-csp-action-click="submitNotice" data-csp-args-click="%5B%5D"><i class="fas fa-paper-plane"></i> Publish</button></div>
@@ -287,5 +280,6 @@
     <script src="/vendor/chart.js/dist/chart.umd.min.js"></script>
   <script src="/js/portal-core.js"></script>
   <script src="/js/principal-portal.js"></script>
+  <script src="/js/schedule-manager.js"></script>
 </body>
 </html>

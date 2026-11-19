@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+const admissionSagaLinkSchema = new mongoose.Schema({
+  sagaId: { type: String, required: true },
+  ownerGeneration: { type: Number, required: true },
+  studentId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Student' },
+}, { _id: false });
+
 const parentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -7,6 +13,10 @@ const parentSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  admissionSagaId: { type: String, select: false },
+  admissionSagaGeneration: { type: Number, select: false },
+  admissionSagaOwnership: { type: String, enum: ['owned', 'shared'], select: false },
+  admissionSagaLinks: { type: [admissionSagaLinkSchema], default: [], select: false },
   children: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student'
@@ -41,6 +51,9 @@ const parentSchema = new mongoose.Schema({
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
+
+parentSchema.index({ admissionSagaId: 1, admissionSagaGeneration: 1 }, { sparse: true });
+parentSchema.index({ 'admissionSagaLinks.sagaId': 1, 'admissionSagaLinks.ownerGeneration': 1 });
 
 parentSchema.methods.getChildren = async function() {
   await this.populate('children');

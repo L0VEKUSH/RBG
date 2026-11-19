@@ -18,7 +18,11 @@ const generateToken = (payload) => {
  * @param {string} message - Response message
  */
 const sendTokenResponse = (user, statusCode, res, message = 'Success') => {
-  const token = generateToken({ id: user._id, role: user.role });
+  const token = generateToken({
+    id: user._id,
+    role: user.role,
+    tokenVersion: user.tokenVersion || 0,
+  });
 
   const cookieOptions = {
     expires: new Date(Date.now() + JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
@@ -41,10 +45,7 @@ const sendTokenResponse = (user, statusCode, res, message = 'Success') => {
     .json({
       success: true,
       message,
-      
-      data: { user: userResponse,
-        token: token
-       },
+      data: { user: userResponse },
     });
 };
 

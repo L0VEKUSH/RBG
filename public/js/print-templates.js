@@ -105,54 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── 3. Report Card Hydration ──────────────────────────────────
     const reportCard = document.getElementById('reportCardContent');
     if (reportCard) {
-        const studentId = params.get('id') || 'STU001';
-        setTimeout(() => {
-            const data = {
-                name: 'John Doe',
-                roll: '45',
-                class: 'X-A',
-                admissionNo: studentId,
-                dob: '15-08-2010',
-                attendance: '95%',
-                overall: 'A',
-                remarks: 'Excellent performance. Keep it up!',
-                marks: [
-                    { subject: 'English', t1: 45, t2: 48, total: 93, grade: 'A1' },
-                    { subject: 'Mathematics', t1: 49, t2: 50, total: 99, grade: 'A1' },
-                    { subject: 'Science', t1: 42, t2: 46, total: 88, grade: 'A2' },
-                    { subject: 'Social Studies', t1: 40, t2: 45, total: 85, grade: 'A2' }
-                ]
-            };
-
-            const setText = (id, val) => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = val;
-            };
-
-            setText('studentName', data.name);
-            setText('rollNo', data.roll);
-            setText('className', data.class);
-            setText('admissionNo', data.admissionNo);
-            setText('dob', data.dob);
-            setText('attendance', data.attendance);
-            setText('overallGrade', data.overall);
-            setText('remarks', data.remarks);
-
-            const marksBody = document.getElementById('marksBody');
-            if (marksBody) {
-                marksBody.innerHTML = '';
-                data.marks.forEach(m => {
-                    const tr = document.createElement('tr');
-                    const fields = [m.subject, m.t1, m.t2, m.total, m.grade];
-                    fields.forEach(val => {
-                        const td = document.createElement('td');
-                        td.textContent = String(val);
-                        tr.appendChild(td);
-                    });
-                    marksBody.appendChild(tr);
-                });
-            }
-        }, 300);
+        hydrateReportCard(reportCard);
     }
 
     // ── 4. Transfer Certificate Hydration ─────────────────────────
@@ -169,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 firstAdmission: '01-Apr-2018, Class V',
                 dob: '22-Oct-2008 (Twenty Second October Two Thousand Eight)',
                 lastClass: 'X (Tenth)',
-                lastResult: 'Passed CBSE Board Examination',
+                lastResult: 'PassedUP Board Board Examination',
                 failed: 'No',
                 subjects: 'English, Math, Science, Social Studies, Computer',
                 promotion: 'Yes, to Class XI',
@@ -187,3 +140,113 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     }
 });
+
+async function fetchReportCardData(path) {
+    const response = await fetch(`/api/v1${path}`, {
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+    });
+    let payload = {};
+    try { payload = await response.json(); } catch (_) { /* handled by the status check */ }
+    if (!response.ok || payload.success !== true) {
+        throw new Error(payload.message || (response.status === 401 ? 'Please sign in to view your report card.' : 'Report card data could not be loaded.'));
+    }
+    return payload.data;
+}
+
+function reportCardText(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value == null || value === '' ? 'Unavailable' : String(value);
+}
+
+function reportCardDate(value) {
+    if (!value) return 'Unavailable';
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : 'Unavailable';
+}
+
+async function hydrateReportCard(reportCard) {
+    const status = document.getElementById('reportCardStatus');
+    const printButton = document.getElementById('reportCardPrint');
+    try {
+        const [profileData, marksData, dashboardResult] = await Promise.all([
+            fetchReportCardData('/students/my-profile'),
+            fetchReportCardData('/marks/my-marks'),
+            fetchReportCardData('/dashboard/student').then(data => ({ data })).catch(error => ({ error })),
+        ]);
+        const student = profileData?.student;
+        const marks = marksData?.marks;
+        if (!student || !Array.isArray(marks)) throw new Error('The authorized student profile or published results were not returned.');
+
+        const user = student.user || {};
+        const name = user.name || [user.firstName, user.lastName].filter(Boolean).join(' ');
+        reportCardText('studentName', name || 'Unavailable');
+        reportCardText('rollNo', student.rollNumber);
+        reportCardText('className', student.class);
+        reportCardText('admissionNo', student.admissionNumber);
+        reportCardText('dob', reportCardDate(user.dateOfBirth));
+
+        const attendance = dashboardResult.data?.attendancePercentage;
+        reportCardText('attendance', typeof attendance === 'number' ? `${attendance}%` : 'Unavailable');
+
+        const years = [...new Set(marks.map(record => record?.academicYear).filter(Boolean))];
+        reportCardText('academicYear', years.length ? years.join(', ') : student.academicYear || 'Unavailable');
+        const gradeSummaries = marks
+            .filter(record => record?.overallGrade)
+            .map(record => `${record.examType || 'Exam'}: ${record.overallGrade}`);
+        reportCardText('overallGrade', gradeSummaries.length ? gradeSummaries.join('; ') : 'No published grade');
+        const remarks = marks
+            .filter(record => typeof record?.remarks === 'string' && record.remarks.trim())
+            .map(record => `${record.examType || 'Exam'}: ${record.remarks.trim()}`);
+        reportCardText('remarks', remarks.length ? remarks.join('; ') : 'No remarks recorded');
+
+        const body = document.getElementById('marksBody');
+        if (body) {
+            body.replaceChildren();
+            const rows = marks.flatMap(record => (Array.isArray(record?.subjects) ? record.subjects : []).map(subject => ({ record, subject })));
+            if (!rows.length) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 5;
+                cell.textContent = 'No published subject marks are available.';
+                row.appendChild(cell);
+                body.appendChild(row);
+            } else {
+                for (const { record, subject } of rows) {
+                    const row = document.createElement('tr');
+                    const values = [
+                        `${record.examType || 'Exam'} / ${record.academicYear || 'Year unavailable'}`,
+                        subject?.subject || 'Unavailable',
+                        subject?.maxMarks ?? 'Unavailable',
+                        subject?.isAbsent ? 'Absent' : subject?.marksObtained ?? 'Unavailable',
+                        subject?.grade || 'Not recorded',
+                    ];
+                    for (const value of values) {
+                        const cell = document.createElement('td');
+                        cell.textContent = String(value);
+                        row.appendChild(cell);
+                    }
+                    body.appendChild(row);
+                }
+            }
+        }
+
+        if (status) status.textContent = marks.length ? 'Published results loaded.' : 'Profile loaded; no published marks are available.';
+        if (printButton) printButton.disabled = false;
+    } catch (error) {
+        reportCardText('studentName', 'Unavailable');
+        reportCardText('academicYear', 'Unavailable');
+        reportCardText('rollNo', 'Unavailable');
+        reportCardText('className', 'Unavailable');
+        reportCardText('admissionNo', 'Unavailable');
+        reportCardText('dob', 'Unavailable');
+        reportCardText('attendance', 'Unavailable');
+        reportCardText('overallGrade', 'Unavailable');
+        reportCardText('remarks', 'Unavailable');
+        const body = document.getElementById('marksBody');
+        if (body) body.replaceChildren();
+        if (status) status.textContent = error.message || 'Report card could not be loaded.';
+        if (printButton) printButton.disabled = true;
+        reportCard.setAttribute('data-load-error', 'true');
+    }
+}

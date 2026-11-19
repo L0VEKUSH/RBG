@@ -16,8 +16,7 @@ const Class = require('../models/Class');
 const Subject = require('../models/Subject');
 const AcademicYear = require('../models/AcademicYear');
 
-// Connect to DB
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/school_management_db');
+const { assertLocalSyntheticSeedTarget } = require('../scripts/seed-safety');
 
 const classLevels = ['Pre-Nursery', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
@@ -43,21 +42,12 @@ const generateAcademicYear = async () => {
  */
 const importData = async () => {
   try {
-    if (process.env.NODE_ENV === 'production') {
-      console.error('CRITICAL: Cannot run seed script in production environment!'.red.inverse);
-      process.exit(1);
-    }
-
-    // Safety check: refuse to run against a URI that does not contain a
-    // recognisable development/staging database name.
-    const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/school_management_db';
-    const safeDbPatterns = ['school_management_db', 'school_management_staging', 'school_management_dev', 'school_management_test'];
-    const isSafeTarget = safeDbPatterns.some(p => uri.includes(p));
-    if (!isSafeTarget) {
-      console.error('CRITICAL: MONGO_URI does not match a known dev/staging database name. Refusing to seed.'.red.inverse);
-      console.error(`URI: ${uri.replace(/:\/\/[^@]+@/, '://***@')}`);
-      process.exit(1);
-    }
+    const uri = assertLocalSyntheticSeedTarget({
+      expectedEnvironment: 'development',
+      optInVariable: 'ALLOW_DEMO_SEED',
+      databaseName: 'school_management_dev',
+    });
+    await mongoose.connect(uri);
 
     console.log('Starting safe seed process (no database drop)...'.yellow);
     // NOTE: No dropDatabase() here. Use -d flag for destructive wipe.
@@ -109,7 +99,7 @@ const importData = async () => {
 
     const adminUser = await createUserIfMissing({
       name: 'Super Admin',
-      email: 'admin@sunriseschool.edu.in',
+      email: 'admin@RBG.edu.in',
       password: 'Admin@1234',
       role: 'super_admin',
       phone: '9800000001'
@@ -117,7 +107,7 @@ const importData = async () => {
 
     const principalUser = await createUserIfMissing({
       name: 'Dr. Sarah Johnson',
-      email: 'principal@sunriseschool.edu.in',
+      email: 'principal@RBG.edu.in',
       password: 'Principal@1234',
       role: 'principal',
       phone: '9800000002'
@@ -125,7 +115,7 @@ const importData = async () => {
 
     const accountantUser = await createUserIfMissing({
       name: 'Rajeev Kumar',
-      email: 'accountant@sunriseschool.edu.in',
+      email: 'accountant@RBG.edu.in',
       password: 'Accountant@1234',
       role: 'accountant',
       phone: '9800000003'
@@ -133,7 +123,7 @@ const importData = async () => {
 
     const librarianUser = await createUserIfMissing({
       name: 'Anita Desai',
-      email: 'librarian@sunriseschool.edu.in',
+      email: 'librarian@RBG.edu.in',
       password: 'Librarian@1234',
       role: 'librarian',
       phone: '9800000004'
@@ -142,7 +132,7 @@ const importData = async () => {
     // 4. Create Teachers & Class Teachers (idempotent)
     const teacherUser = await createUserIfMissing({
       name: 'John Smith',
-      email: 'teacher@sunriseschool.edu.in',
+      email: 'teacher@RBG.edu.in',
       password: 'Teacher@1234',
       role: 'class_teacher',
       phone: '9800000005'
@@ -169,7 +159,7 @@ const importData = async () => {
     // 5. Create Parent & Student (idempotent)
     const parentUser = await createUserIfMissing({
       name: 'Mr. & Mrs. Sharma',
-      email: 'parent@sunriseschool.edu.in',
+      email: 'parent@RBG.edu.in',
       password: 'Parent@1234',
       role: 'parent',
       phone: '9800000006'
@@ -177,7 +167,7 @@ const importData = async () => {
 
     const studentUser = await createUserIfMissing({
       name: 'Aarav Sharma',
-      email: 'student@sunriseschool.edu.in',
+      email: 'student@RBG.edu.in',
       password: 'Student@1234',
       role: 'student',
       phone: '9800000007'
@@ -220,10 +210,11 @@ const importData = async () => {
 
 const destroyData = async () => {
   try {
-    if (process.env.NODE_ENV === 'production') {
-      console.error('CRITICAL: Cannot run destroy script in production environment!'.red.inverse);
-      process.exit(1);
-    }
+    const uri = assertLocalSyntheticSeedTarget({
+      expectedEnvironment: 'development',
+      optInVariable: 'ALLOW_DEMO_SEED',
+      databaseName: 'school_management_dev',
+    });
 
     // Require an explicit confirmation env variable to prevent accidental wipes.
     if (process.env.CONFIRM_DESTROY !== 'yes-i-know-this-drops-the-database') {
@@ -231,15 +222,7 @@ const destroyData = async () => {
       process.exit(1);
     }
 
-    // Safety check: refuse against non-dev databases.
-    const uri = process.env.MONGO_URI || '';
-    const safeDbPatterns = ['school_management_db', 'school_management_staging', 'school_management_dev', 'school_management_test'];
-    const isSafeTarget = safeDbPatterns.some(p => uri.includes(p));
-    if (!isSafeTarget) {
-      console.error('CRITICAL: MONGO_URI does not match a known dev/staging database. Refusing to destroy.'.red.inverse);
-      process.exit(1);
-    }
-
+    await mongoose.connect(uri);
     await mongoose.connection.dropDatabase();
     console.log('Data Destroyed!'.red.inverse);
     process.exit();

@@ -130,7 +130,9 @@
         </div>
         
         <div class="filter-bar csp-style-07d1b1c536" >
-          <div class="form-group csp-style-0adf663f4a" ><label for="attClassSel">Class</label><select class="form-control" id="attClassSel" data-csp-action-change="loadClassRosterForAttendance" data-csp-args-change="%5B%5D"></select></div>
+          <div class="form-group csp-style-0adf663f4a" ><label for="attClassSel">Class</label><select class="form-control" id="attClassSel" data-csp-action-change="updateAttendanceYears" data-csp-args-change="%5B%5D"></select></div>
+          <div class="form-group csp-style-0adf663f4a" ><label for="attAcademicYearSel">Academic Year</label><select class="form-control" id="attAcademicYearSel" data-csp-action-change="updateAttendanceSubjects" data-csp-args-change="%5B%5D"><option value="">Select Academic Year</option></select></div>
+          <div class="form-group csp-style-0adf663f4a" ><label for="attSubjectSel">Subject</label><select class="form-control" id="attSubjectSel" data-csp-action-change="loadClassRosterForAttendance" data-csp-args-change="%5B%5D"><option value="">Select Subject</option></select></div>
           <div class="form-group csp-style-0adf663f4a" ><label for="attDateSel">Date</label><input type="date" class="form-control" id="attDateSel" data-csp-action-change="loadClassRosterForAttendance" data-csp-args-change="%5B%5D"></div>
           <button class="btn btn-secondary csp-style-39eadb9054"  data-csp-action-click="loadClassRosterForAttendance" data-csp-args-click="%5B%5D"><i class="fas fa-sync"></i> Load</button>
         </div>
@@ -181,12 +183,11 @@
         </div>
         
         <div class="filter-bar csp-style-73347482d1" >
-          <select class="form-control csp-style-5e96948257" id="marksClass" aria-label="Select class for marks entry" data-csp-action-change="updateMarksSubjectList" data-csp-args-change="%5B%5D"><option value="">Class</option></select>
-          <select class="form-control csp-style-2a551eb8eb" id="marksSubject" aria-label="Select subject for marks entry"><option value="">Subject</option></select>
-          <select class="form-control csp-style-2a551eb8eb" id="marksExam" aria-label="Select exam for marks entry">
-            <option value="">Exam Type</option><option>Unit Test 1</option><option>Unit Test 2</option><option>Half Yearly</option><option>Annual</option>
-          </select>
-          <input type="number" class="form-control csp-style-ebb13c75de" id="marksMax" placeholder="Max Marks" aria-label="Maximum marks" value="100" data-csp-action-change="recalculateAllGrades" data-csp-args-change="%5B%5D">
+          <select class="form-control csp-style-5e96948257" id="marksClass" aria-label="Select class for marks entry" data-csp-action-change="updateMarksAcademicYears" data-csp-args-change="%5B%5D"><option value="">Class</option></select>
+          <select class="form-control csp-style-2a551eb8eb" id="marksAcademicYear" aria-label="Select academic year for marks entry" data-csp-action-change="updateMarksExamList" data-csp-args-change="%5B%5D"><option value="">Academic year</option></select>
+          <select class="form-control csp-style-2a551eb8eb" id="marksExam" aria-label="Select scheduled exam for marks entry" data-csp-action-change="updateMarksSubjectList" data-csp-args-change="%5B%5D"><option value="">Exam</option></select>
+          <select class="form-control csp-style-2a551eb8eb" id="marksSubject" aria-label="Select subject for marks entry" data-csp-action-change="updateMarksMaximum" data-csp-args-change="%5B%5D"><option value="">Subject</option></select>
+          <input type="number" class="form-control csp-style-ebb13c75de" id="marksMax" placeholder="Max Marks" aria-label="Maximum marks" min="0.01" step="any" data-csp-action-change="recalculateAllGrades" data-csp-args-change="%5B%5D">
           <button class="btn btn-secondary" data-csp-action-click="loadStudentsForMarks" data-csp-args-click="%5B%5D"><i class="fas fa-table"></i> Load Sheet</button>
         </div>
 
@@ -194,7 +195,7 @@
           <div class="table-wrapper">
             <table class="data-table">
               <thead><tr><th class="csp-style-91269935bd">Roll</th><th>Student</th><th class="csp-style-d334b57bfc">Marks</th><th class="csp-style-6d2a18baae">Percentage</th><th class="csp-style-6d2a18baae">Grade</th></tr></thead>
-              <tbody id="marksSheetBody"><tr><td colspan="5"><div class="empty-state csp-style-be6df18e8a" ><i class="fas fa-edit"></i><h4>Select Class & Exam</h4></div></td></tr></tbody>
+              <tbody id="marksSheetBody"><tr><td colspan="5"><div class="empty-state csp-style-be6df18e8a" ><i class="fas fa-edit"></i><h4>Select assigned class, academic year and exam</h4></div></td></tr></tbody>
             </table>
           </div>
         </div>
@@ -213,8 +214,20 @@
         <div class="empty-state"><i class="fas fa-folder-open"></i><h4>Study Materials</h4><p>Upload and manage study resources for your classes.</p></div>
       </div>
       <div class="page-section" id="panel-exams">
-        <div class="section-header"><h2><i class="fas fa-file-alt csp-style-3c61c26578" ></i> Upcoming Exams</h2></div>
-        <div class="empty-state"><i class="fas fa-file-alt"></i><h4>Exams</h4><p>View upcoming examinations.</p></div>
+        <div class="section-header"><h2><i class="fas fa-file-alt csp-style-3c61c26578" ></i> Assigned Exam Schedules</h2></div>
+        <p class="text-muted" id="teacherExamScheduleStatus" role="status" aria-live="polite">Open this panel to load schedules for your assigned classes and subjects.</p>
+        <div class="card"><div class="table-wrapper"><table class="data-table">
+          <thead><tr><th>Exam</th><th>Type</th><th>Class / Year</th><th>Subject</th><th>Date</th><th>Time</th><th>Room</th><th>Status</th></tr></thead>
+          <tbody id="teacherExamScheduleBody"></tbody>
+        </table></div></div>
+      </div>
+      <div class="page-section" id="panel-timetable">
+        <div class="section-header"><h2><i class="fas fa-calendar-alt"></i> My Assigned Timetable</h2></div>
+        <p class="text-muted" id="teacherTimetableStatus" role="status" aria-live="polite">Open this panel to load assigned periods.</p>
+        <div class="card"><div class="table-wrapper"><table class="data-table">
+          <thead><tr><th>Day</th><th>Class</th><th>Academic Year</th><th>Period</th><th>Time</th><th>Subject</th><th>Room</th></tr></thead>
+          <tbody id="teacherTimetableBody"></tbody>
+        </table></div></div>
       </div>
       <div class="page-section" id="panel-notices"><div class="section-header"><h2><i class="fas fa-bell"></i> Notices</h2></div><div id="noticesList"></div></div>
       <div class="page-section" id="panel-leave">
@@ -247,5 +260,6 @@
     <script src="/vendor/chart.js/dist/chart.umd.min.js"></script>
   <script src="/js/portal-core.js"></script>
   <script src="/js/teacher-portal.js"></script>
+  <script src="/js/schedule-manager.js"></script>
 </body>
 </html>

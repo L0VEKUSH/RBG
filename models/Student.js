@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Class = require('./Class');
 
 const CLASS_LEVELS = [
   'Pre-Nursery', 'Nursery', 'LKG', 'UKG',
@@ -13,6 +14,9 @@ const StudentSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    admissionSagaId: { type: String, select: false },
+    admissionSagaGeneration: { type: Number, select: false },
+    admissionSagaOwnership: { type: String, enum: ['owned', 'shared'], select: false },
     admissionNumber: {
       type: String,
       unique: true,
@@ -48,6 +52,7 @@ const StudentSchema = new mongoose.Schema(
       required: [true, 'Academic year is required'],
       match: [/^\d{4}-\d{4}$/, 'Format: 2024-2025'],
     },
+    enrollmentEffectiveFrom: Date,
     father: {
       name: { type: String, required: [true, "Father's name is required"] },
       occupation: String,
@@ -112,6 +117,12 @@ const StudentSchema = new mongoose.Schema(
       default: false,
     },
     tcDate: Date,
+    tcLastEnrolledDate: Date,
+    academicStatus: {
+      type: String,
+      enum: ['enrolled', 'graduated', 'withdrawn', 'transferred'],
+      default: 'enrolled',
+    },
     remarks: String,
     enrollmentHistory: [
       {
@@ -119,7 +130,11 @@ const StudentSchema = new mongoose.Schema(
         academicYear: String,
         stream: String,
         rollNumber: Number,
-        promotedDate: { type: Date, default: Date.now }
+        effectiveFrom: Date,
+        // Only promotion/transfer workflows with an explicit effective date
+        // should close an enrollment segment. Do not invent a date for legacy
+        // or non-promotion history entries.
+        promotedDate: Date
       }
     ]
   },
@@ -135,9 +150,39 @@ StudentSchema.virtual('dueFees').get(function () {
   return (this.fees.totalFees - this.fees.paidFees - this.fees.discount);
 });
 
+// Explicitly reject section fields via virtual setters
+StudentSchema.virtual('section').set(function () {
+  this.invalidate('section', 'Class sections are not supported. RBG School ERP models single undivided classes per level.');
+});
+StudentSchema.virtual('sections').set(function () {
+  this.invalidate('sections', 'Class sections are not supported. RBG School ERP models single undivided classes per level.');
+});
+
 // FIXED: Compound index now includes class to prevent roll number collision across classes
 StudentSchema.index({ class: 1, rollNumber: 1, academicYear: 1 }, { unique: true });
 StudentSchema.index({ parentUser: 1 });
+StudentSchema.index({ admissionSagaId: 1, admissionSagaGeneration: 1 }, { sparse: true });
+
+// Pre-validate hook enforcing the 15 approved logical classes, alias normalization, and no sections
+StudentSchema.pre('validate', function (next) {
+  if (this.section || this.sections) {
+    this.invalidate('section', 'Class sections are not supported. RBG School ERP models single undivided classes per level.');
+  }
+
+  // Enforce 15 canonical levels and alias normalization on new records or when class is modified
+  if (this.isNew || this.isModified('class')) {
+    if (this.class) {
+      try {
+        this.class = Class.validateAndNormalizeClassWrite(this.class, 'Class');
+      } catch (err) {
+        this.invalidate('class', err.message);
+        return next();
+      }
+    }
+  }
+
+  next();
+});
 
 // Auto-generate admission number
 StudentSchema.pre('save', async function (next) {
@@ -151,5 +196,6 @@ StudentSchema.pre('save', async function (next) {
 
 // Statics
 StudentSchema.statics.CLASS_LEVELS = CLASS_LEVELS;
+StudentSchema.statics.CANONICAL_CLASS_LEVELS = Class.CANONICAL_CLASS_LEVELS;
 
 module.exports = mongoose.model('Student', StudentSchema);

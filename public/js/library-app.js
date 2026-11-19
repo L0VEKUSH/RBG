@@ -1,9 +1,8 @@
 
 // Role Specific Logic for library.html
 const currentUser = JSON.parse(localStorage.getItem('user'));
-const token = localStorage.getItem('token');
 
-if (!token || !currentUser) {
+if (!currentUser) {
     window.location.href = 'login.html';
 }
 
@@ -26,7 +25,7 @@ showPanel('dashboard');
 async function fetchDashboardData() {
     try {
         const res = await fetch('/api/v1/dashboard/library', {
-            headers: { 'Authorization': 'Bearer ' + token }
+            credentials: 'include'
         });
         const data = await res.json();
         if (data.success) {
@@ -52,4 +51,3 @@ async function fetchDashboardData() {
 document.addEventListener('DOMContentLoaded', () => {
     fetchDashboardData();
 });
-

@@ -41,6 +41,16 @@ const AttendanceSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Academic year is required'],
     },
+    revision: {
+      type: Number,
+      min: 0,
+      default: 0,
+      validate: Number.isSafeInteger,
+    },
+    lastMutationId: {
+      type: String,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -49,14 +59,20 @@ const AttendanceSchema = new mongoose.Schema(
   }
 );
 
-// Unique attendance per student per date per subject
-AttendanceSchema.index({ student: 1, date: 1, subject: 1 }, { unique: true });
+// The approved logical key permits the same student/date/subject in a different
+// class or academic year while preventing duplicate records in one scope.
+AttendanceSchema.index(
+  { student: 1, class: 1, date: 1, subject: 1, academicYear: 1 },
+  { unique: true }
+);
 AttendanceSchema.index({ class: 1, date: 1 });
 
 // Static method: get attendance summary for a student
-AttendanceSchema.statics.getStudentSummary = async function (studentId, academicYear) {
+AttendanceSchema.statics.getStudentSummary = async function (studentId, academicYear, className, subjects) {
   const match = { student: new mongoose.Types.ObjectId(studentId) };
   if (academicYear) match.academicYear = academicYear;
+  if (className) match.class = className;
+  if (Array.isArray(subjects)) match.subject = { $in: subjects };
 
   const result = await this.aggregate([
     { $match: match },
@@ -78,15 +94,23 @@ AttendanceSchema.statics.getStudentSummary = async function (studentId, academic
 };
 
 // Static: get class attendance for a date
-AttendanceSchema.statics.getClassAttendance = async function (cls, date) {
-  const start = new Date(date);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(date);
-  end.setHours(23, 59, 59, 999);
+AttendanceSchema.statics.getClassAttendance = async function (cls, dateKey, academicYear, subjects, session) {
+  const { start, end } = require('../utils/attendance-date').schoolDayBounds(dateKey);
 
-  return this.find({ class: cls, date: { $gte: start, $lte: end } })
-    .populate({ path: 'student', populate: { path: 'user', select: 'name profilePhoto' } })
+  const filter = { class: cls, date: { $gte: start, $lt: end } };
+  if (academicYear) filter.academicYear = academicYear;
+  if (Array.isArray(subjects)) filter.subject = { $in: subjects };
+
+  let query = this.find(filter)
+    .select('_id student class date status subject academicYear revision')
+    .populate({
+      path: 'student',
+      select: '_id admissionNumber rollNumber class academicYear user',
+      populate: { path: 'user', select: 'name' },
+    })
     .sort('student');
+  if (session) query = query.session(session);
+  return query;
 };
 
 module.exports = mongoose.model('Attendance', AttendanceSchema);

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <script src="/js/account-recovery.js"></script>
+  <title>Activate Account — RBG School</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="login-container">
+    <section class="login-form-wrap">
+      <h2>Activate your account</h2>
+      <p>Choose a password to finish setting up your account.</p>
+      <div id="accountMessage" role="status" aria-live="polite"></div>
+      <form id="accountForm">
+        <div class="form-group">
+          <label for="password">New password</label>
+          <input id="password" class="form-control" type="password" minlength="8" required autocomplete="new-password">
+        </div>
+        <button class="btn-login" type="submit">Activate account</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

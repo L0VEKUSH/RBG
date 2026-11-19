@@ -55,13 +55,13 @@ async function run() {
   // ── pull seeded accounts ──────────────────────────────────────────────────
   const [superAdmin, principal, teacher, accountant, librarian,
          parentUser, studentUser] = await Promise.all([
-    User.findOne({ email: 'admin@sunriseschool.edu.in' }),
-    User.findOne({ email: 'principal@sunriseschool.edu.in' }),
-    User.findOne({ email: 'teacher@sunriseschool.edu.in' }),
-    User.findOne({ email: 'accountant@sunriseschool.edu.in' }),
-    User.findOne({ email: 'librarian@sunriseschool.edu.in' }),
-    User.findOne({ email: 'parent@sunriseschool.edu.in' }),
-    User.findOne({ email: 'student@sunriseschool.edu.in' }),
+    User.findOne({ email: 'admin@school.edu.isunrisen' }),
+    User.findOne({ email: 'principal@RBG.edu.in' }),
+    User.findOne({ email: 'teacher@RBG.edu.in' }),
+    User.findOne({ email: 'accountant@RBG.edu.in' }),
+    User.findOne({ email: 'librarian@RBG.edu.in' }),
+    User.findOne({ email: 'parent@RBG.edu.in' }),
+    User.findOne({ email: 'student@RBG.edu.in' }),
   ]);
 
   if (!superAdmin || !parentUser || !studentUser || !teacher) {
@@ -94,11 +94,11 @@ async function run() {
   console.log('\n── 1. AUTHENTICATION ─────────────────────────────────────────');
 
   // 1a. Valid login
-  let r = await api('POST', '/auth/login', null, { email: 'admin@sunriseschool.edu.in', password: 'Admin@1234' });
+  let r = await api('POST', '/auth/login', null, { email: 'admin@RBG.edu.in', password: 'Admin@1234' });
   check('1a. Super Admin login succeeds', r.status === 200, `Got ${r.status}: ${r.data.message}`);
 
   // 1b. Wrong password
-  r = await api('POST', '/auth/login', null, { email: 'admin@sunriseschool.edu.in', password: 'WRONG' });
+  r = await api('POST', '/auth/login', null, { email: 'admin@RBG.edu.in', password: 'WRONG' });
   check('1b. Wrong password → 401', r.status === 401, `Got ${r.status}`);
 
   // 1c. No token → 401
@@ -246,7 +246,7 @@ async function run() {
     check('6c. Student response has no lockUntil', !body.includes('lockUntil'), 'lockUntil found in response');
   }
 
-  r = await api('POST', '/auth/login', null, { email: 'admin@sunriseschool.edu.in', password: 'Admin@1234' });
+  r = await api('POST', '/auth/login', null, { email: 'admin@RBG.edu.in', password: 'Admin@1234' });
   const body = JSON.stringify(r.data);
   check('6d. Login response has no password hash', !body.includes('"password"'), 'password found in login response');
 

@@ -9,11 +9,11 @@ const router = express.Router();
 
 router.use(protect);
 
-router.get('/', requirePermission('students.view', 'students.view-basic'), getParents);
-router.get('/my-children', requirePermission('students.view-linked'), getMyChildren);
+router.get('/', requireRole('super_admin', 'school_admin', 'admin', 'principal'), requirePermission('students.view', 'users.view'), getParents);
+router.get('/my-children', requireRole('parent'), requirePermission('students.view-linked'), getMyChildren);
 router.post('/', requirePermission('users.create'), createParent);
-router.get('/:id', requirePermission('students.view', 'students.view-basic', 'profile.view-own'), requireOwnership('Parent', 'id'), getParent);
-router.put('/:id', requirePermission('users.update'), updateParent);
-router.get('/:id/children', requirePermission('students.view', 'students.view-basic', 'students.view-linked'), requireOwnership('Parent', 'id'), getParentChildren);
+router.get('/:id', requireRole('super_admin', 'school_admin', 'admin', 'principal', 'parent'), requirePermission('students.view', 'users.view', 'parents.view-own'), requireOwnership('Parent', 'id'), getParent);
+router.put('/:id', requireRole('super_admin', 'school_admin', 'admin', 'principal', 'parent'), requirePermission('users.update', 'parents.update-own'), requireOwnership('Parent', 'id'), updateParent);
+router.get('/:id/children', requireRole('super_admin', 'school_admin', 'admin', 'principal', 'parent'), requirePermission('students.view', 'students.view-linked'), requireOwnership('Parent', 'id'), getParentChildren);
 
 module.exports = router;

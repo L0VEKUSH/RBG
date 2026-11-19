@@ -13,11 +13,18 @@
 const mongoose = require('mongoose');
 const bcrypt   = require('bcryptjs');
 const path     = require('path');
+const { assertLocalSyntheticSeedTarget } = require('../scripts/seed-safety');
 
 // ── Safety check ───────────────────────────────────────────────────
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/school_management_staging';
-if (!MONGO_URI.includes('staging')) {
-  console.error('\n❌  SAFETY STOP: MONGO_URI does not contain "staging". Refusing to seed.\n');
+let MONGO_URI;
+try {
+  MONGO_URI = assertLocalSyntheticSeedTarget({
+    expectedEnvironment: 'staging',
+    optInVariable: 'ALLOW_STAGING_DEMO_SEED',
+    databaseName: 'school_management_staging',
+  });
+} catch (error) {
+  console.error(`\nSAFETY STOP: ${error.message}\n`);
   process.exit(1);
 }
 
@@ -42,7 +49,7 @@ const hash = async pw => bcrypt.hash(pw, 12);
 
 async function run() {
   await mongoose.connect(MONGO_URI);
-  console.log(`✅  Connected to: ${MONGO_URI}`);
+  console.log('✅  Connected to isolated staging database.');
 
   if (DESTROY) {
     await mongoose.connection.dropDatabase();
@@ -289,7 +296,7 @@ async function run() {
   console.log(`  📋  Attendance seeded for Arjun (30 days)`);
 
   // ── 10. Marks ───────────────────────────────────────────────────
-  // Use new+save instead of findOneAndUpdate so the pre-save hook computes CBSE grades
+  // Use new+save instead of findOneAndUpdate so the pre-save hook computesUP Board grades
   await Marks.deleteMany({ student: arjun._id, examType: 'Unit Test 1', academicYear: '2026-2027' });
   const marksDoc = new Marks({
     student:     arjun._id,
@@ -364,16 +371,7 @@ async function run() {
   console.log('\n════════════════════════════════════════════════════');
   console.log(' STAGING SEED COMPLETE');
   console.log('════════════════════════════════════════════════════');
-  console.log('\n Credentials for UAT:');
-  console.log('  Super Admin : superadmin@staging.edu.in / Admin@123');
-  console.log('  Principal   : principal@staging.edu.in  / Principal@123');
-  console.log('  Teacher     : ravi.sharma@staging.edu.in / Teacher@123');
-  console.log('  Class Teacher: priya.nair@staging.edu.in / Teacher@123');
-  console.log('  Student     : arjun@staging.edu.in      / Student@123');
-  console.log('  Parent      : mr.kumar@staging.edu.in   / Parent@123');
-  console.log('  Accountant  : accountant@staging.edu.in / Staff@123');
-  console.log('  Librarian   : librarian@staging.edu.in  / Staff@123');
-  console.log('\n ⚠️  ALL DATA IS STAGING/DEMO — do not use real student info\n');
+  console.log('\nSynthetic staging fixtures created. Credentials are not printed.');
 
   await mongoose.disconnect();
 }
